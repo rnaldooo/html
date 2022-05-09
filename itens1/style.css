@@ -1,0 +1,36 @@
+#graph {
+    width: 970px;
+    background-color: white;
+    margin-left: auto;
+    margin-right: auto;
+}
+.node circle {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1px;
+}
+.node {
+    font-family: sans-serif;
+    font-size: 0.3em;
+    text-shadow: 1px 1px 0px #FFF;
+}
+.link {
+    fill: none;
+    stroke: lightgrey;
+    stroke-width: 1px;
+}
+.selected_parent circle {
+    stroke: #008000;
+}
+.selected_parent_link {
+    stroke: #008000;
+}
+.selected circle {
+    stroke-width: 2px;
+}
+.selected_child circle {
+    stroke: #800080;
+}
+.selected_child_link {
+    stroke: #800080;
+}

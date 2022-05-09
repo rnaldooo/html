@@ -1,0 +1,9023 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=windows-1252"/>
+    <title></title>
+    <style type="text/css">
+        p {
+  padding-top : 1em;   
+}
+
+em { 
+    font-style  : normal; 
+}
+
+em[data-chord]:before {
+    position    : relative;
+    top         : -1em;
+    display     : inline-block;
+    content     : attr(data-chord);
+    width       : 0;
+    font-weight : bold;
+    font-style  : italic;
+    speak       : literal-punctuation;
+    pause       : 1s; /* pause between chord and text */
+}
+
+
+ /* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+} 
+
+
+    </style>
+	
+	    <link href="demo.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+    <script src="vexchords.dev.js"></script>
+	<script> 
+	function openCity(evt, cityName) {
+  // Declare all variables
+  var i, tabcontent, tablinks;
+
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(cityName).style.display = "block";
+  evt.currentTarget.className += " active";
+} 
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+
+
+/*
+ * Copyright (c) 2014-16 Greg Schoppe <gschoppe@gmail.com>
+ * Copyright (c) 2011 Jonathan Perkin <jonathan@perkin.org.uk>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+/* Parse a ChordPro template */
+function parseChordPro(template, transpose) {
+	if( typeof transpose == "undefined" ) {
+		transpose = false;
+	}
+	var chordregex= /\[([^\]]*)\]/;
+	var inword    = /[a-z]$/;
+	var buffer    = [];
+	var chords    = [];
+	var last_was_lyric = false;
+	var transpose_chord = function( chord, trans ) {
+		var notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+		var regex = /([A-Z][b#]?)/g;
+		var modulo = function(n, m) {
+				return ((n % m) + m) % m;
+		}
+		return chord.replace( regex, function( $1 ) {
+			if( $1.length > 1 && $1[1] == 'b' ) {
+				if( $1[0] == 'A' ) {
+					$1 = "G#";
+				} else {
+					$1 = String.fromCharCode($1[0].charCodeAt() - 1) + '#';
+				}
+			}
+			var index = notes.indexOf( $1 );
+			if( index != -1 ) {
+				index = modulo( ( index + trans ), notes.length );
+				return notes[index];
+			}
+			return 'XX';
+		});
+	}
+	if (!template) return "";
+
+	template.split("\n").forEach(function(line, linenum) {
+		/* Comment, ignore */
+		if (line.match(/^#/)) {
+			return "";
+		}
+		/* Chord line */
+		if (line.match(chordregex)) {
+			if( !buffer.length ) {
+				buffer.push('<div class="lyric_block">');
+				last_was_lyric = true;
+			} else if( !last_was_lyric ) {
+				buffer.push('</div><div class="lyric_block">');
+				last_was_lyric = true;
+			}
+			var chords = "";
+			var lyrics = "";
+			var chordlen = 0;
+			line.split(chordregex).forEach(function(word, pos) {
+				var dash = 0;
+				/* Lyrics */
+				if ((pos % 2) == 0) {
+					lyrics = lyrics + word.replace(' ', "&nbsp;");
+				  /*
+				   * Whether or not to add a dash (within a word)
+				   */
+					if (word.match(this.inword)) {
+						dash = 1;
+					}
+				  /*
+				   * Apply padding.  We never want two chords directly adjacent,
+				   * so unconditionally add an extra space.
+				   */
+					if (word && word.length < chordlen) {
+						chords = chords + "&nbsp;";
+						lyrics = (dash == 1) ? lyrics + "-&nbsp;" : lyrics + "&nbsp&nbsp;";
+						for (i = chordlen - word.length - dash; i != 0; i--) {
+							lyrics = lyrics + "&nbsp;";
+						}
+					} else if (word && word.length == chordlen) {
+						chords = chords + "&nbsp;";
+						lyrics = (dash == 1) ? lyrics + "-" : lyrics + "&nbsp;";
+					} else if (word && word.length > chordlen) {
+						for (i = word.length - chordlen; i != 0; i--) {
+							chords = chords + "&nbsp;";
+						}
+					}
+				} else {
+					/* Chords */
+					chord = word.replace(/[[]]/, "");
+					if(transpose !== false) {
+						chord = transpose_chord(chord, transpose);
+					}
+					chordlen = chord.length;
+					chords = chords + '<span class="chord" data-original-val="' + chord + '">' + chord + '</span>';
+				}
+			}, this);
+			buffer.push('<span class="line">' + chords + "<br/>\n" + lyrics + "</span><br/>");
+			return;
+		}
+		/* Commands, ignored for now */
+		if (line.match(/^{.*}/)) {
+			if( !buffer.length ) {
+				buffer.push('<div class="command_block">');
+				last_was_lyric = false;
+			} else if( last_was_lyric ) {
+				buffer.push('</div><div class="command_block">');
+				last_was_lyric = false;
+			}
+			//ADD COMMAND PARSING HERE
+			//reference: http://tenbyten.com/software/songsgen/help/HtmlHelp/files_reference.htm
+			// implement basic formatted text commands
+			var matches = line.match(/^{(title|t|subtitle|st|comment|c):\s*(.*)}/, "i");
+			if( matches.length >= 3 ) {
+				var command = matches[1];
+				var text = matches[2];
+				var wrap="";
+				//add more non-wrapping commands with this switch
+				switch( command ) {
+					case "title":
+					case "t":
+						command = "title";
+						wrap = "h1";
+						break;
+					case "subtitle":
+					case "st":
+						command = "subtitle";
+						wrap = "h4";
+						break;
+					case "comment":
+					case "c":
+						command = "comment";
+						wrap    = "em";
+						break;
+				}
+				if( wrap ) {
+					buffer.push('<' + wrap + ' class="' + command + '">' + text + '</' + wrap + '>' );
+				}
+			}
+			// work from here to add wrapping commands
+			return;
+		}
+		/* Anything else */
+		buffer.push(line + "<br/>");
+	}, this);
+	return buffer.join("\n");
+}
+
+$(document).ready(function() {
+  var the_timeout = "";
+  $('textarea').on("keyup input", function() {
+    var $this = $(this);
+    clearTimeout( the_timeout );
+    the_timeout = setTimeout( function() {
+      var template = $this.val();
+      var transpose = $('.transpose .transpose-level').data('transpose');
+      var html = parseChordPro(template, transpose);
+      $('.rendering-target').html(html);
+    }, 10 );
+  });
+  $('.transpose a').click(function(e) {
+    e.preventDefault();
+    var $this = $(this);
+    var $wrapper = $this.closest('.transpose');
+    var $val_block = $wrapper.find('.transpose-level');
+    var old_val = $val_block.data('transpose');
+    var new_val = old_val;
+    if( $this.hasClass('transpose-up') ) {
+      new_val += 1;
+    } else {
+      new_val -= 1;
+    }
+    $val_block.data('transpose', new_val);
+    var new_text = "";
+    if( new_val > 0 ) {
+      new_text += "+";
+    } else if( new_val < 0 ) {
+      new_text += "&minus;";
+    }
+    new_text += Math.abs(new_val);
+    $val_block.html(new_text);
+    $('textarea').trigger("input");
+  });
+})
+
+
+	</script>
+	
+</head>
+<body lang="pt-BR" link="#000080" vlink="#800000" dir="ltr">
+
+<!-- Tab links -->
+<div class="tab">
+  <button class="tablinks" onclick="openCity(event, 'Letra')" id="defaultOpen">Letra</button>
+  <button class="tablinks" onclick="openCity(event, 'Cifra')">Cifra</button>
+  <button class="tablinks" onclick="openCity(event, 'Acordes')">Acordes</button>
+  <button class="tablinks" onclick="openCity(event, 'tudo')">tudo</button>
+</div>
+
+	<textarea>1</textarea>
+				<label>Transpose?</label>
+				<div class="transpose">
+					<a href="#" class="transpose-down"><i class="fa fa-chevron-down"><span class="sr-only">transpose down</i></a>
+					<span class="transpose-level" data-transpose="0">0</span>
+					<a href="#" class="transpose-up"><i class="fa fa-chevron-up"><span class="sr-only">transpose up</i></a>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+
+<pre>
+      
+      <em data-chord="C">T</em>este
+      
+      
+<div id="Cifra" class="tabcontent">	          D7M G/D </div>
+<div id="Letra" class="tabcontent">      Que a graça do Senhor Jesus</div>
+          D   Asus    A7  
+      E o amor de Deus, o Pai
+ <div class="lyric_block"         D7M G/D </div>
+	  
+	  https://tombatossals.github.io/react-chords
+	  
+	  
+          D7M G/D 
+      Que a graça do Senhor Jesus
+          D   Asus    A7  
+      E o amor de Deus, o Pai
+          D7M G/D
+      E a comunhão, a comunhão
+          D   Asus    A7
+      Do Espírito reine aqui
+          D7M G/D
+      E para sempre e para sempre 
+          D   Asus    A7  D
+      E para sempre, amém! 
+      
+      
+                    *******          
+      
+      
+      D9  A/C#
+      Vem derrama a paz
+      G/B D
+      Vem derrama as bênçãos
+      G9  D/F#    Em7 Asus    A7
+      Sobre este povo que se chama povo teu
+      D9  A/C#    G/B D
+      Dá-nos teu amor, dá-nos tua força
+      G9  D/F#    
+      Pra que tentações não venham
+      Em7 Asus    A7
+      A nos desviar
+      
+      
+      
+      G   A/G F#m7    Bm7
+      E a glória seja dada a ti
+      Em7 D/F#
+      Pelo que tens feito
+      F#m7    Bm7
+      Pelo que tens sido
+      Em7 A7  Bm7 Bm/A
+      Pelo que farás em nós.          
+      
+      Em7 F#m7    G   G#º Asus    A7  D9
+      Pelo       que   farás    em    nós
+      
+      
+      
+                    *******
+      
+      
+      C9  G   Am7 Bb/G    C7  
+      Deus está aqui. Aleluia! 
+          F9  G/F C   Bb/G    C7  
+      Tão certo como o ar que eu respiro
+          F9  G/F E7  E/G#    Am7
+      Tão certo como a manhã que se levanta
+          Dm7 Gsus    G7  C9  F/G
+      Tão certo como eu te falo e podes me ouvir
+      
+          Em7 Am7 D7  Em7 
+      Aleluia, aleluia, aleluia
+      C   Am7 Bsus    B7
+      Canto a ti Senhor esta canção
+      Em  Am7 D7  Em7
+      Aleluia, aleluia, aleluia
+      C   Am7 Em7
+      Canto a ti Senhor com meu coração
+      
+      
+          G9
+      Porque me deste vida 
+          D/F#    D
+      Quando havia morte em mim
+          Am7
+      Me deste alegria 
+          Em7 D
+      Quando havia pranto em mim
+          C9  Em7
+      Por isso o meu falar por isso o meu cantar
+          C9  Am7 Bsus    B7
+      Por isso é que eu te dou o meu amor
+      
+      
+          G9
+      Porque teu santo Espírito
+          D/F#    D
+      Está sendo derramado
+          Am7 Em7 D
+      E todo o teu povo está sendo consolado
+          C9  Em7
+      Por isso o meu falar por isso o meu cantar
+          C9  Am7 Bsus    B7
+      Por isso é que eu te dou o meu amor
+      
+      *******
+      
+          Am  Am/G    F7M C/E     Dm7 Em7 Am7 G/A
+      Espírito, Espírito, Espírito Santo de Deus
+          
+          Am  Am/G    F7M C/E     Dm7 Em7 Am7 G/B A/C#
+      Espírito, Espírito, Espírito Santo de Deus
+      
+      
+      
+      Dm7 Gsus    G7  C7M
+      Vem controlar todo o meu ser
+      Bº  E7  Am7 G/B A/C#
+      Vem dirigir o meu viver
+          Dm  Am7
+      O meu pensar, o meu falar
+          B7  E7  Bm7 E7
+      O meu sentir e o meu agir
+      
+      
+      
+      G   D/F#    Em7 Em  Eb
+      Logo de manhã, quero te buscar
+      G   A   A7  Am7 C/D D7
+      Tua voz ouvir, teu amor sentir
+      G   D/F#    Em7 Em  Eb
+      Estender as mãos para te louvar
+      G   A   A7  Am7 Dsus    D7  G9      
+      Derramar meu coração sobre teu altar
+          Am7 E/G#    E7
+      Pois tu sabes bem
+          Am7 E7  Am7 Am/G    
+      Tudo quanto há em mim
+          F   E7
+      Que vou te seguir
+          Am7 E7  F   C/D D7
+      E te amar até o fim
+      
+      
+      G   D/F#    Em7 Em  Eb
+      E no fim do dia, quando o sol se for
+      G   A/G A7  Am7 C/D D7
+      Te adorarei, te darei louvor
+      G   D/F#    Em7 Em  Eb
+      Mesmo escura a noite brilha a tua luz
+      G   A/C#    A7
+      Em teus braços eu descanso
+      Am7 C/D Eb  G9
+      Meu Senhor Jesus
+      
+      
+      
+                    ******* 
+      
+      
+          C9  F/C Fm  C7M Bb/G    C7  
+      Aqui viemos te adorar, ó Cristo
+          F   G/F C   Bb/G    C7
+      E proclamar o teu poder
+          F   G/F Am7 F
+      Nos levantamos para o teu louvor
+          C   Am7 Bb7M    Gsus    G7
+      Senhor Jesus, Rei, Salvador
+      
+      
+          C9  F/C Fm  C7M Bb/G    C7
+      Aqui viemos por amor, ó Cristo
+          F   G/F C   Bb/G    C7
+      Aceita a nossa adoração
+          F   G/F Am7 F
+      Que a nossa vida no altar de Deus
+          C   Gsus    G7  F   C7M
+      Confirme a nossa oração
+      
+          A   Asus    A   Asus
+      Cantai ao Senhor um cântico novo 
+          F#m7    F#m/E   F#m/Eb  D7M
+      Cantai ao Senhor todas as terras
+          C#m7    D7M C#m7    D7M
+      Cantai ao Senhor, bendizei o seu nome
+      Bm7 C#m D7M G   E   
+      Proclamai a sua salvação
+      
+      
+          A   Asus    A   Asus
+      Anunciai entre as nações a sua glória
+          F#m7    F#m/E   F#m/Eb  D7M
+      E entre todos os povos as suas maravilhas
+      C#m7    D7M
+      Porque grande é o Senhor
+          C#m D7M
+      E mui digno de ser louvado
+      Bm7 C#m D7M G   E
+      Mais temível do que falsos deuses
+      
+      
+      A9  Asus    A9  Asus
+      Glória e majestade estão diante dele
+      A9  Asus    G   Dsus    D   A9  Asus
+      Força e formosura no seu santuário
+      
+      
+                          ******* 
+      
+      G9  F/G G7
+      A alegria está no coração
+          C7  G9  C/D D7
+      De quem já conhece a Jesus
+      G9  Em7 
+      A verdadeira paz só tem aquele
+          F   D7
+      Que já conhece a Jesus.
+      
+      
+      G9  F/G G7
+      O sentimento mais precioso
+          C   A7
+      Que vem do nosso Senhor
+          G   Em7 Am7 D7  C   G9
+      É o amor que só tem quem já conhece a Jesus
+      
+      
+      Aleluia ! Aleluia !
+      
+      Aleluia ! Aleluia !
+        
+      G9
+      Posso pisar numa tropa 
+          G7  C   G
+      E saltar as muralhas, aleluia, aleluia
+      G   Em7
+      Cristo é a rocha da minha salvação 
+          F           D7
+      Com Ele não há mais condenação
+          E   C#m F#m A/B
+      A ti Senhor elevo a minha alma
+          F#m A/B E   A/B
+      A ti Senhor elevo a minha alma
+      
+          E   E7  A   Am
+      Ó meu Deus, em ti confio
+          E
+      Guarda-me Senhor
+          C#m F#m B   E   A   E   
+      Pois em ti Senhor, me refugio
+      
+          E   C#m F#m A/B
+      Faz-me Senhor, andar nos teus caminhos
+          F#m A/B E   A/B
+      Faz-me Senhor, andar nos teus caminhos
+      
+          E   E7  A   Am
+      Ó meu Deus, em ti confio
+          E
+      Guarda-me Senhor
+          C#m F#m B   E   A   E   
+      Pois em ti Senhor, me refugio
+      
+      
+      
+                          ******* 
+      
+      
+      G   Am  Bm  C7M
+      Aleluia, salvação e glória
+      D   C/E D/F#    C   G/B Am  G   Am/D
+      Honra e poder, pertencem ao nosso Deus
+      
+      
+      G9  C7M D7  G
+      Canta aleluia, vem dar-lhe glória
+      G/B C7M
+      Levantai seu nome
+      D   C   G9
+      Jesus é o Rei dos Reis.
+      
+      
+                          ******* 
+      
+      
+      A   E/G#    D/F#    Dm7 A   Bm7 E7
+      Eu te louvarei, Senhor de todo o meu coração
+      A   E/G#    D/F#    Dm7 A   G/B
+      Eu te louvarei, Senhor de todo o meu coração
+      
+      A7  D7M C#  F#m Dm7 A   E7  F#m7    G/B
+      Na presença dos deuses a ti cantarei louvores
+      A7  D7M C#  F#m Dm7 A   E7  A9
+      Na presença dos deuses a ti cantarei louvores
+      
+          Dm7 C/D D7  Gm9 Bb/C    C7  
+      Cristo vem me buscar, para o Céu me levará
+          F   A7  Dm7 Asus    A7
+      O Cordeiro prometido voltará
+          Cm  D7
+      
+          Gm7 C7  F   A7  Dm7
+      Ó glória ! Aleluia ! Maranata ! Vem Jesus !
+          Gm  C7  F9  F#º
+      Sou liberto pelo sangue desta cruz
+          Gm  C7  F   A7  Dm7
+      Tenho o Consolador, sua glória e esplendor
+          Gm  Asus    A7  Dm  C/D
+      Sou liberto pelo sangue do Senhor
+      
+      
+          Dm7 C/D      D7 Gm9                            Bb/C   C7    
+      Ele manda atento estar, vigiar e sempre orar
+          F   A7  Dm7 Asus    A7
+      Para o toque da trombeta escutar
+      
+      
+          Dm7 C/D  D7 Gm9                 Bb/C   C7   
+      Ó que gozo vou sentir, com os anjos a cantar
+          F   A7  Dm7 Asus    A7
+      Pois com Cristo para sempre vou morar
+      
+      
+      
+      
+                          ******* 
+      
+      
+      
+      C/D G   (C/A    G/B)    Am  D7
+      Então se verá o Filho do Homem
+      Am  C/D D7  G9  C/D 
+      Vindo sobre as nuvens com poder e glória
+                                                                                                                                         F/G
+      
+          G7  C   Cm
+      Porque assim como o relâmpago
+          Bm7 Em7
+      Que sai do oriente e se mostra no ocidente
+          Am7
+      Assim há de ser
+          C/D     D7  G   F/G G7  
+      A vinda do Filho do Homem 
+          Eb  F   G7M
+      
+      F   C/E
+      Enche-me, Espírito
+          Bb  Gm7 F
+      Mais que cheio quero estar
+          Asus    A7  Dm  Bb
+      Eu, o menor dos teus vasos
+          F   C7  Bb  F
+      Posso muito transbordar
+      
+      
+          C7  C#º Dm7 Dm/C
+      Ó dá-me viver cada dia
+          Bb  Gm7 C/E C7
+      Com salmos, hinos de amor
+      Eb7M    Dm7 G7  Cm  F7  Bb  Csus    C7  
+      Dá-me andar cada dia  com gratidão e louvor
+      
+      
+          C7  C#º Dm7 Dm/C    Bb  Gm7 C/E C7
+      Ó dá-me viver cada dia  com sobriedade e temor
+      Eb7M    Dm7 G7
+      Em sujeição uns aos outros
+      Cm  F7  Bb  Csus    C7
+      Como convém no Senhor
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+      D9  Bm7 Em7 A7  D7M Bm7
+      Teu querer vem fazer
+          Em  Asus    A7  Am  D7
+      Preenchendo cada dia meu viver
+          G7M A/G 
+      Tua vontade vem mostrar
+          F#m7    Bm7 
+      Nossos passos vem guiar
+          Em  Asus    A7  D9  
+      Ensinando a obedecer teu querer
+      
+      
+          Bm7 Em7 A7  D7M Bm7
+      Teu querer vem fazer
+          Em  Asus    A7  Am  D7
+      Preenchendo cada dia meu viver
+          G7M A/G 
+      Aos teus pés venho entregar
+          F#m7    Bm7 
+      Minha vida, meu cantar
+          Em  Asus    A7  D9  
+      Me dispondo a cumprir teu querer  
+      
+          Gm
+      Nós somos o povo a quem Deus libertou
+      Bb  C   D
+      Verdadeiramente somos livres
+          Gm  F   Eb  Gm
+      Pois fomos comprados por seu grande amor
+          D   Gm
+      Sim, Cristo nos resgatou
+      
+      
+          Cm  
+      Livrou-nos da mão do inimigo
+          Eb  F   Bb
+      E nos trouxe a um lugar de glória
+          Cm  
+      Onde temos constante abrigo
+          Eb  Cm  D
+      Onde temos garantida a vitória
+      
+      
+          Cm  
+      Tirou-nos do império da escuridão
+          Eb  F   Bb
+      E nos trouxe ao seu reino de luz
+          Cm  
+      Um reino de paz, alegria e perdão
+          Eb  Cm  D
+      No qual nosso rei é Jesus
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+          F   Bb/G    F/A A7  Dm7 Dm/C    
+      Eu posso escutar o exército de Deus
+          Gm  C7  
+      Marchando sobre a terra
+          Db  Eb
+      Em plano de guerra vai
+      
+      
+          F   Bb/G    F/A
+      Já ouço o louvor
+          Asus    A7  Dm7     
+      Que é arma de vitória
+          Gm  C7
+      O exército de Deus
+          Gm  C7
+      O exército de Deus
+          Gm Am       Bb7M    Bº  Bb/C    
+      O exército de Deus
+      Db      Eb  F
+      Marchando vai
+          C7
+      
+          Am7 (G/A)   Am  G/A
+      Pelo Senhor marchamos, sim
+          F
+      O seu exército poderoso é
+          Dm7 E   Am  G/A
+      Sua glória será vista em toda a terra
+      
+      
+          Am  G/A Am  G/A
+      Vamos cantar o canto da vitória
+          F
+      Glória a Deus ! Vencemos a batalha
+          Dm7 E   Am  G/A
+      Toda a arma contra nós perecerá
+      
+      
+          F7M C7M
+      O nosso general é Cristo
+          F7M C7M
+      Seguimos os seus passos
+          F7M Dm  G   Am  G/A
+      Nenhum inimigo nos resistirá
+      
+      
+          Am7 (G/A)   Am  G/A
+      Pelo Messias, marchamos, sim
+          F
+      Em sua mão a chave da vitória
+          Dm7 E   Am  G/A
+      Que nos leva a possuir a Terra Prometida
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+      F9  C   Dm7 Bb
+      Caiam por terra agora os inimigos de Deus
+          F   Am7 Bb  C
+      E seja estabelecida a Casa do Senhor
+      
+      
+          F   C
+      O Senhor é um Deus que salva
+          Dm  Bb
+      Que cura e santifica
+      F   Am  Bb  C   
+      Ele tem nos dado nova vida
+      F   C
+      Ele tem nos dado
+          Dm  Bb
+      Um novo canto, um novo espírito
+          F   Am  Bb  C   F
+      Com nossos lábios vamos proclamar
+      
+      G9      C/G                  
+      Este é meu respirar
+      G9  C/G                         
+      Este é meu respirar
+      G9  D/F#    Em7 Em/D    C7M Em      DsusD7        
+      Teu Santo Espírito ,vivendo em mim
+      
+      G9  C/G                                 
+      E este é o meu pão
+      G9  C/G                                             
+      E este é o meu pão
+      G9  D/F#    Em7 Em/D    C7M Em  Dsus    D7                                      
+      Tua vontade   feita em mim
+      
+      G9  D/F# Em7    C7M Em  Dsus    D7              
+      E eu , eu nada sou sem Ti
+      G9  D/F# Em C7M Em  Dsus    D7                      
+      E eu , perdido estou sem Ti
+      
+      
+      G       D/F# Em7    C7M Em  Dsus                       
+      E eu , eu nada sou sem Ti
+      G       D/F# Em7    C7M Em  Dsus               
+      E eu , perdido estou sem Ti
+              C7M Em  D                                
+      Eu nada sou sem Ti
+              C7M Em  Dsus                             
+      Perdido estou sem Ti
+      G9  C/G                 
+      Tu és meu respirar
+      G9  C7M Dsus    G9                            
+      Tu és o ar pra mim
+      
+      
+      
+      
+                         ******* 
+      
+                       
+              
+      Em  C7M
+      Tudo é de meu Cristo 
+          D   Em                           
+      Por Ele , e para Ele
+      
+          C9  D9  G9  D/F#    Em                 
+      Demos a Cristo , toda a glória
+          C7M D                       
+      A Ele a glória
+          Em                  
+      Pra sempre amém
+      
+      Em  C7M                     
+      Que riqueza profunda
+          D   Em                                       
+      É o saber e conhecer de Deus
+          C7M                         
+      Como são insondáveis
+          D   Em                               
+      Seus caminhos e juízos
+      Intro: Am  Em  Dm  F/G
+      
+          C9  Em7
+      Quero subir ao monte santo de Sião
+          Am7 Em7
+      E entoar um novo cântico ao meu Deus
+      F   G/F 
+      Mais que palavras
+          Em7 F
+      Minha vida eu quero entregar
+          Am7 Em7 Dm7 Em7
+      Purifica o meu coração para entrar em tua presença
+      F                               F/G  Gsus  G7
+      Contemplar tua grandeza
+      
+      
+          C9  Am7 Dm7
+      Te adoro Senhor em espírito e em verdade
+      F/G C   Am  F
+      Me prostro aos teus pés na beleza da santidade
+          Dm7 Em7
+      Te dou meu louvor, que seja um cheiro suave
+          F   Em7 Dm7
+      E um som agradável a ti
+          G
+      Pois digno és
+          C
+      
+      
+      
+                         ******* 
+      
+      
+      
+      G9  D/F#    Em  Em/D
+      Venho Senhor minha vida oferecer
+      C7M G   C7M       D/F#
+      Como oferta de amor e sacrifício
+      G9  D/F#    Em  Em/D
+      Quero minha vida a ti entregar
+      C7M D/F#    G   C/D
+      Como oferta viva em teu altar
+          G7
+      
+      C7M D/F#    Em  C7M D/F#    Em  E7
+      Pois pra te adorar, foi que eu nasci
+      Bm7 C7M
+      Cumpra em mim o teu querer
+      Am7 D/F#    G   G7
+      Faça o que está em teu coração
+      C7M D/F#    B7  Em
+      E que a cada dia eu queira mais e mais
+      Am7 Bm7 C   Dsus
+      Estar ao teu lado
+      
+      Am7 Bm7 C   Dsus    G
+      Estar ao teu lado Senhor
+      
+          G/B C
+      Teu amor é incrível, firme e constante
+          D   C
+      Como uma rocha sob os meus pés
+          G/B C
+      Ele me sustenta, isso é um mistério
+          D   C
+      Quando estou cercado, ele me conduz
+      
+          G   D   Em
+      Aleluia, Aleluia, Aleluia
+          C
+      Teu amor me faz cantar
+      
+          G/B C
+      Teu amor surpreende, cresce de repente
+          D   C
+      Alegria imensa, sempre a me encher 
+          G/B C
+      Sempre que te vejo, brilha a Tua bondade
+          D   C
+      Nasce um novo canto dentro do meu ser
+      
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+          C   G/B Am7 Am/G
+      Ao único que é digno de receber
+          F9  C/E Dm7 Gsus    G7
+      A honra e a glória, a força e o poder
+          C7M C7
+      Ao rei eterno, imortal
+      F7M G7
+      Invisível mas real
+          F9  F/G C   Bm7/b5  E7
+      A ele ministramos o louvor
+      
+      
+          Am  Em  F   G   C
+      Coroamos a ti, ó Rei Jesus
+          Am  Em  F   Gsus    G7
+      Coroamos a ti, ó Rei Jesus
+          F   G/F 
+      Adoramos o teu nome
+          E7  Am
+      Nos rendemos aos teus pés
+          Dm7 Gsus    G7  Am7 Am/G
+      Consagramos todo nosso ser a ti
+          Dm7 G7                   F/C    C
+      Consagramos todo nosso ser a ti
+      
+      
+      
+      D9  Bm7
+      Vem guiar-me ó grande Deus
+          G9  A
+      Confio em seu poder
+          Em7 Bm7
+      Pois a ti minha alma quer
+          E7  Asus    A7
+      Com gratidão dizer
+          D9  Bm7
+      Que tu és o meu Senhor
+          F#  Bm7
+      E nenhum outro há
+          E   Esus    E
+      Que me deu tão grande amor
+          G   A   G   A   G   A
+      E pode assim salvar
+      
+      
+          G   A   D   Bm7
+      Louvarei sempre ao meu Senhor
+      ( Louvarei ao meu Senhor )
+          G   A   D   Bm7
+      Pelo seu grande amor e graça
+      ( Pela sua graça )
+          G   A   D
+      Porque minha alma libertou
+          C   Asus    A7
+      Oh, que grande amor
+      
+      
+          D9  Bm7
+      Ao meu lado há de estar
+          G9  A
+      Pra sempre o meu Senhor
+          Em7 Bm7
+      Não me deixa vacilar
+          E7  Asus    A7  
+      Ao enfrentar a dor
+          D9  Bm7
+      E por isso vou cantar
+          F#  Bm7
+      Por seu tão grande amor
+          E   Esus    E7
+      Sem cessar, ao grande Rei
+          G   A   G   A   G   A
+      Louvores cantarei
+      
+          G   A   D   Bm7
+      Louvarei sempre ao meu Senhor
+      ( Louvarei ao meu Senhor )
+          G   A   D   Bm7
+      Pelo seu grande amor e graça
+      ( Pela sua graça )
+          G   A   D
+      Porque minha alma libertou
+          C   D   C   D
+      Oh, que grande amor
+      
+          E   B9  C#m A   E/A Bsus    B7         
+      No santo lugar quero Te adorar
+              E   B/D#    C#m C#m/B                                  
+      Tua face ver ,Teu coração tocar
+      F#m A/B E                   
+      No santo lugar
+      
+      E   A/C#    B/D#    E                           
+      Expressar tudo que sinto
+          A/C#    E                        
+      E atrair Teu olhar
+          A/C#    B/D#    E                               
+      Com louvores bendizer-Te
+          C#m
+      Amado meu 
+                   F#m    E/G#    C#m                     
+      Pois o meu desejo é
+          F#m Bsus    E                         
+      Ser achado como adorador
+      
+       C7 F   C   Dm7 Bb  F/Bb    Csus    C7
+      No santo lugar quero Te adorar
+          F   C/E Dm7 Dm/C            
+      Tua face ver ,Teu coração tocar
+      Bb  C   F                       
+      No santo lugar
+      
+      
+                         ******* 
+      
+      A9  A#º Bm7 Esus
+      Mas a vereda do justo 
+          E7  C#m F#7
+      É como a luz da aurora
+          Bm7 E7
+      Que vai brilhando mais 
+          A9  A#º
+      E vai brilhando mais
+          Bm7
+      Mas a vereda do justo 
+      Esus    E7  C#m F#7
+      É como a luz da aurora
+          Bm7 E7
+      Que vai brilhando mais 
+          A9  E
+      Até ser dia perfeito
+      
+                        ***********
+      
+      E7  A9  A#º Bm  
+      Se Deus é por nós quem será contra nós?
+      E7  Bm  E7  A9  G/A A7
+      Se Deus é por nós quem será contra nós?
+      
+      D7M Dm7
+      Posso todas as coisas
+          C#m F#7
+      Naquele que me fortalece
+          Bm  E7  Em  A7
+      Jesus me fortalece e eu posso todas as coisas
+          D7M A9
+          G9  C7M G9  C7M                            
+      Louve a Deus , louve a Deus
+          G9                
+      E ao Senhor Jesus
+             C7M  G9                       
+      De quem as bênçãos vem
+      
+          Bm7 C                           
+      Se o coração abrir
+          G   C                               
+      Águas vivas do interior 
+                  G
+      Irão fluir
+      
+          G9  C7M G9  C7M                     
+      Ao seu nome , louve então 
+          G9  C7M                             
+      Nunca mais serás o mesmo
+              G9
+      Meu irmão
+      
+          G9  C7M                 
+      Glória a Deus
+          G9  C7M                  
+      Glória a Deus
+          G9           
+      E ao Senhor Jesus
+          C7M           
+      De quem as bênçãos 
+          G9      
+      Vem 
+      
+      
+         
+      
+                     ******* 
+      
+      
+      
+          E   D   A
+      Louvai, louvai
+          B/A E   A/B
+      Com nossas vozes vinde louvai!
+          Bm  E7
+      A9  B/A G#m C#m
+      Ele é o rei da glória
+      F#m B7  E   Bm  E7
+      Ele é o rei dos reis
+      A9  B/A G#m C#m
+      Faz a história da redenção
+      Bsus    B7  E   Bm  E7  A
+      Cantar em meu coração
+      
+      D   A/C#    Bm7
+      Tu és soberano sobre a terra
+          F#m G   A/G D   G/A
+      Sobre os céus tu és senhor absoluto
+      D   A/C#    Bm
+      Tudo que existe e acontece
+          F#m G
+      Tu o sabes muito bem
+      A7  D
+      Tu és tremendo.
+      
+      Em7 G/A D
+      E apesar desta glória que tens
+      Em7 G/A D   G/A
+      Tu te importas comigo também
+      D   F#m
+      E este amor tão grande
+          G   Bm/G#   Asus
+      Eleva-me, amarra-me a ti
+      A7  D
+      Tu és tremendo
+      
+      
+      
+      
+      
+                         *******
+       
+      
+      
+      
+      E9  C#m7
+      Tua santidade é grande
+          A9
+      Teu amor imensurável
+      F#m7    G#m7    C#m C#m/B
+      Tuas palavras dentro em mim
+          A9  B   (Na 2ªvez   Bsus    B7)
+      Me fazem ver que eu sou teu
+      
+      
+          E9  F#m7    G#m7    A
+      Te adorarei, te bendirei
+          E9  F#m7
+      És para mim amor maior
+          G#m7    A   C7  (Final  F   Gm  Am  Bb) 2x
+      És para mim amor melhor
+      
+      
+      E9  C#m7
+      Em teus braços eu me aconchego
+          A9
+      Tua doce voz me leva a descansar
+      F#m7    G#m7    C#m7    C#m7/B
+      Tua palavra me faz sentir
+          A9  B   (Na 2ª vez  Bsus    B7)
+      Consolo e paz, pois sou teu
+      
+          E9  E/G#    B7  C#m E7
+      Eu te amo, ó Deus e com minha voz
+          A   E/G#    F#m Bsus    B7  E   E/G#
+      Te adorarei, ó meu rei e te entoarei
+          A   E7
+      Sim, o meu louvor
+      
+      
+          A   E/G#    E
+      Que seja um doce, doce som
+          E7  A   E/G#    C#m7
+      Que seja um doce, doce som
+          E7  A   E/G#    C#m7
+      Que seja um doce, doce som
+          B7  A   E
+      Para ti
+      
+      
+      
+      
+                         ******* 
+      
+      
+      E   A/E B/E
+      
+          A/E         E               
+      Eu quero ser usado meu Senhor
+          A/E         F#m B7
+      Com tudo o que tenho e que sou
+          F#m     B7      
+      Ser um vaso em Tuas mãos
+          G#m C#m
+      E canal do Teu amor
+              D   Bsus    B7
+      Instrumento vivo por onde quer que for
+      
+      
+              A/E         E
+      Quero falar da mudança que houve em mim
+              A/E     F#m B7
+      Da nova vida que um dia alcancei
+              F#m B   
+      Quero dar o meu melhor 
+          G#m C#m 
+      Te agradar e Te servir
+          F#m B7      E
+      Em meus passos quero o Teu querer cumprir
+      
+      
+      A/E E   B/E E   
+      Eis-me aqui sou um servo ao Teu dispor
+      A/E E   B/E F#m B7
+      Reina em mim, pra que o mundo possa ver
+          F#m B7      G#m C#m
+      Tua luz em meio às trevas e tão grande salvação
+              F#m B7      E
+      Que liberta o homem traz a paz e dá perdão
+      
+          F/G C7M F7M C7M
+      Que segurança, sou de Jesus
+      Em/B    Am  Am/G    D/F#    G7
+      E já desfruto o gozo da luz
+      F/G C7M F7M C7M
+      Sou por Jesus herdeiro de Deus
+      Am7 Dm  Gsus    G7  C
+      Ele me leva à glória dos céus
+      
+      
+      F/G C7M F7M C7M
+      Canta, minha alma, canta ao Senhor
+      Em/B    Am7 D/F#    Gsus    G7
+      Rende-lhe sempre ardente louvor
+      F/G C7M F7M C7M
+      Canta, minha alma, canta ao Senhor
+      Am  Dm  Gsus    G7  C
+      Rende-lhe sempre ardente louvor
+      
+      F/G C7M F7M C7M
+      Ao seu amor eu me submeti
+      Em/B    Am  Am/G    D/F#    G7
+      E extasiado então me senti
+      F/G C7M F7M C7M
+      Anjos descendo trazem dos céus
+      Am7 Dm  Gsus    G7  C
+      Ecos da excelsa graça de Deus
+      
+      Transição (2ª vez)    Am   Dm   Gsus   G7   C
+      
+      F/G C7M F7M C7M
+      Sempre vivendo em seu grande amor
+      Em/B    Am  Am/G    D/F#    G7
+      Me regozijo em meu salvador
+      F/G C7M F7M C7M
+      Esperançoso vivo na luz
+      Am7 Dm  Gsus    G7  C
+      Pela bondade do meu Jesus
+      
+      
+                         ******* 
+      
+      
+      D9  G   D/F#    Asus    A7
+      Lá está o meu tesouro
+      D9  G   D/F#    Asus    
+      Lá onde não há choro
+          F#m Bm  F#m Bm
+      Onde todos cantaremos juntos
+      E   D/F#    G   E/G#    Asus    A7  
+      Hinos de louvor.
+      
+      
+      D9  G   D/F#    Asus    A7  D9  G   D/F#    Asus
+      Aleluia ! Aleluia!
+          F#m Bm  F#m Bm
+      Aleluia ! Aleluia!
+      Em  D/F#    G   E/G#    Asus    A7  
+      Hinos de louvor
+          D9  G   D   Asus    A7  D
+      Ao Senhor
+      
+      
+      G   C/G G   C/G G   C/G
+      Raiou ! Raiou ! Raiou !
+          D   G
+      Luz divina em mim raiou
+      
+      
+          C   G   C   G
+      Meu caminho era escuro, sem a luz da retidão
+          C   Em  A7  C   G
+      A minha alma angustiada e eu sem fé no coração
+          C   G   C   G
+      Como é triste andar em trevas é pior que sentir dor
+          C   Em  A7  C   G
+      Pois a vida só é linda nos caminhos do Senhor
+      
+      
+          C   G   C   G
+      Mas um dia, ó que dia, Deus mandou-me a sua luz
+          C   Em  A7  C   G
+      Enxerguei caminho claro, sim, eu vi o meu Jesus
+          C   G   C   G
+      Logo dentro do meu peito uma luta se travou
+          C   Em  A7  C   G
+      Era a força do pecado resistindo ao seu amor
+      
+      
+          C   G   C   G
+      Meu Jesus maravilhoso nada por fazer deixou
+          C   Em  A7  C   G
+      Tudo, tudo consumado, minha sorte restaurou
+          C   G   C   G
+      Deu-me paz e novo alento, o caminho revelou
+          C   Em  A7  C   G
+      Tenho agora luz e vida, esperança em seu amor
+      
+      
+          C   G   C   G
+      O seu plano foi perfeito, tudo em mim considerou
+          C   Em  A7  C   G
+      O inimigo foi desfeito pela força do amor
+          C   G   C   G
+      Luz que antes eu não via luz que sobre mim brilhou 
+          C   Em  A7  C   G
+      Luz bendita, luz divina, meu Jesus, meu Salvador
+      
+      F9  Bb/F  F9    Bb/F            
+      Grande é o Senhor , digno de louvor
+      Dm7 Bb  C9                   
+      Venha o Teu reino sobre nós
+      
+      
+          Dm7 Bb                                
+      Grande é a Tua misericórdia
+          F9  Bb                                
+      Grande é o Teu amor por mim
+      Dm7 Bb  C9                  
+      Leva-me novamente a sala do trono
+      
+      
+          Dm7 Bb                            
+      Contigo eu dançarei
+          F9  C9                      
+      A Ti eu cantarei
+      Dm7 Bb  C9                              
+      Beijarei Teus pés meu amado
+      
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+      
+      C9  Em7 Am7 Em7 F   C   Dm  G7
+      Buscai primeiro o Reino de Deus e a sua justiça
+      C9  G/E Am7 Bb/G    C7
+      E todas as coisas vos serão acrescentadas   
+      F   C   Dm7 G   C
+      Aleluia   
+      
+      
+      C9  Em7 Am7 Em7 F   C   Dm  G7
+      Aleluia, aleluia
+      
+      C9  Em7 Am7 Em7 F   C   G7  C
+      Aleluia, aleluia
+      
+      
+      C9  Em7 Am7 Em7 
+      Nem só de pão o homem viverá
+      F   C   Dm  G7
+      Mas de toda a palavra
+      C9  G/E Am7 Bb/G    C7
+      Que procede da boca de Deus
+      F   C   Dm7 G   C
+      Aleluia
+      
+          C7  
+      No ano trinta e três de sua vida
+          F7
+      Morreu um homem, o Filho do Homem
+          C7
+      Pendurado num madeiro, na montanha
+          G7  F7
+      Mas no terceiro dia de sua morte
+          C7  G7
+      Ele ressuscitou
+      
+          C7          
+      Ele está com a gente, com a gente
+          C7
+      Ele está com a gente, com a gente
+          F7
+      Ele está com a gente, com a gente
+          G7
+      Vive em nossos corações 
+          F7  C7  G7
+      E sua luz não morrerá jamais
+      
+          C7
+      Mas no século vinte espalhou
+          F7
+      Sua nova mensagem por todo o mundo
+          C7
+      Varreu o planeta com seu amor
+          G7
+      Ele já vem logo
+          F7  C7  G7
+      Ele vem para me buscar
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+      
+      D9      G/D A9  D9  A/C#                 
+      Não há Deus maior, não há Deus melhor
+      Bm7     Bm/A    G7M     A9  D9            
+      Não há Deus tão grande, como nosso Deus
+      
+      F#      Bm7                           
+      Criou o céu, criou a terra
+      F#      Bm7
+      Criou o sol e as estrelas
+      G   Asus    G   Asus    G   Asus
+      Tudo Ele fez, tudo criou, tudo formou
+      
+      G9      A/G D7M   G9    A/G D7M               
+      Para o Seu louvor,  para o Seu louvor
+      G9      A/G F#m Bm7 
+      Para o Seu,   para o Seu
+      G9      Asus    A7  D9
+      Para o Seu,  louvor
+      
+      
+          C7M G/B                                                         
+      Teu amor por mim 
+          Am7 Am/G                                  
+      É mais doce que o mel
+          F   C/E                              
+      Tua misericórdia é
+          Dm  Gsus    G7                  
+      Nova a cada dia
+      
+          F   C/E                          
+      É por isso que Te louvo
+          Bb  F/A                                 
+      É por isso que Te sirvo
+          C/G D/F#    Gsus    G7              
+      É por isso que Te dou o meu amor
+      
+          F9  C/E                             
+      É por isso que Te louvo
+          Bb  F/A                            
+      É por isso que Te sirvo
+          C/G G7  F   C                       
+      É por isso que Te dou o meu amor
+      
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+      
+      G9  B7  C7M E7
+      Vem em mim reinar
+          Am7 Am/G    F7M C/D D7
+      Em tudo o que eu sou
+      G9  B7  C7M E7
+      Te convido já
+          Am7 G/A F7M C/D E7  
+      A governar a minha vida
+      
+      
+          Am9 Bm7
+      Que meus atos e palavras
+          C7M D9
+      Possam expressar amor
+          Am9 Bm7
+      Que haja sempre em minha boca
+          C7M A/C#    Dsus    D7
+      Um contínuo louvor em gratidão
+          Eb7M    F   Eb7M        F
+      Por tua vida em minha vida
+          Eb7M    F   Eb7M    F
+      Por tua vida em minha vida 
+          Eb7 F   G9  C/D
+      Por tua vida em minha vida
+      
+      A9  D/A A   D/A A9  
+      Juntos na mesma fé, no mesmo amor
+      E/G#    F#m G9  Esus    E7
+      Juntos na mente e coração
+      A9  D/A A   D/A A
+      Temos em cada um a mesma marca
+          E/G#    F#m G9  Esus    E7
+      O mesmo sangue, a mesma cruz
+      
+      
+      D7M 
+      Juntos somos um corpo em Cristo
+      A   F#m7
+      Juntos somos um corpo vivo
+      Bm7 A/C#
+      Corpo que adora e que serve
+      D7M B
+      Corpo que chora e que se alegra
+      A   F#m
+      Corpo que parte e reparte 
+          G   Esus    E7
+      As cargas do irmão
+      
+      
+      Bm7 A/C#
+      Cordas que foram partidas
+      D7M B
+      Podem de novo soar
+      A   F#m B7
+      Corpo onde a vida é mais vida
+          E7  F#m Bsus    B7
+      Vivendo em Jesus
+          A
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+      
+      Em  Bm  C7M Bm
+      Tu és por nós
+      Em  Bm  C7M Bm7
+      Quem será contra nós
+      
+      
+      Asus    A7  D7M Bsus    B7  E   E/D
+      Tens nas mãos todo o poder
+          C#  F#  Bsus    B7
+      O inimigo hás de vencer
+      
+      
+      Asus    A7  D7M Bsus    B7  E   E/D
+      Venha o mal, venha a dor
+      C#  F#  Bsus    B7
+      A vitória é do Senhor
+      
+          E   G#m C#m A   F#m Bsus    B7
+      Assim como a corça suspira pelas águas
+          E   G#m C#m A   B7  E   Bsus    B7
+      Por ti suspira minha alma, Espírito de Deus
+          E   C#m E   C#m
+      Ó enche-me, Espírito, ó enche-me, Espírito
+          E   C#m A   B7  E
+      Ó enche-me, Espírito de Deus
+      
+               
+      
+      
+                         ******* 
+      
+      
+      
+          A9  
+      Em todo o tempo eu louvarei ao Senhor
+          G9  D   A
+      Sempre estará nos meus lábios o seu louvor
+      
+          F9  G9  A9
+      Alegrar-se-á no Senhor a minha alma
+      
+          A9
+      Engrandecei ao Senhor, engrandecei-o comigo
+          G9  D   A
+      E todos a uma lhe exaltemos o nome
+      
+                      F   G   A
+      Seu glorioso nome
+      
+      
+      
+                         ******* 
+      
+      
+      
+          E   A   E   C#m
+      Meu coração transborda de amor
+          F#m B7  E   A   E
+      Porque meu Deus é um Deus de amor
+              B7  E   A   E   C#m
+      Minh’alma está repleta de paz
+          F#m B7  E   E7
+      Porque Jesus é a minha paz.
+          A   B   G#m C#m F#m B7
+      Eu digo aleluia, aleluia, aleluia, aleluia, aleluia
+          E   E7
+      Eu digo porque.           
+          A   B   G#m C#m F#m B7
+      Eu digo aleluia, aleluia, aleluia, aleluia, aleluia
+          E
+      Aleluia ! Amém !
+      
+          D7M G9                              
+      Por tudo o que tens feito
+          D7M Asus    A7                      
+      Por tudo o que vais fazer
+          D   D7  G   Em7                   
+      Por Tuas promessas e tudo o que és
+          D   A                            
+      Eu quero Te agradecer
+          G   D   G/A                           
+      Com todo o meu ser
+      
+                  G6  D7M                              
+      Te agradeço meu Senhor
+          G6  D7M                                             
+      Te agradeço meu Senhor
+      
+          D   D/F#             
+      Te agradeço por me libertar e salvar
+      G   Gº#                         
+      Por ter morrido em meu lugar
+          D7M G9  D7M G9                   
+      Te agradeço , Jesus te agradeço
+          D   G                       
+      Eu te agradeço
+      
+          Em7 D7M Em7 D7M Em7 D7M              
+      Te agradeço , te agradeço , te agradeço
+      
+      
+                          ********
+      
+          A9  D/A E   A9              
+      Tu és minha vida , Jesus, és meu amigo
+          D/A E   A9          
+      E a Tua vontade, doce Espírito, meu alimento
+          D7M A/C#                                
+      Sem Ti não há valor em mim
+          Bm7                              
+      Sou como um vaso de barro
+          D7M                     
+      Pronto a ser quebrado
+          Esus    E7                          
+      Para ser o que queres de mim
+      
+          D7M A/C#                                                
+      A Tua presença é tudo que eu preciso
+          D7M A/C#                    
+      A Tua presença é meu maior valor
+      
+      A7  D7M                 
+      Atrai o meu coração
+                      Bm7
+      Atrai o meu coração
+          A9
+      És tudo que eu quero
+      A7  D7M                 
+      Atrai o meu coração
+          Bm7                 
+      Atrai o meu coração
+          A9                  
+      Eu posso Te tocar
+      C   G/B Am7 Am/G    
+      Seja bendito o Cordeiro
+          Dm7 Gsus    G7
+      Que na cruz por nós padeceu
+      C   G/B Am7 Am/G
+      Seja bendito o seu sangue
+          Dm  Gsus    G7  C   Bb/G    C7
+      Que por nós pecadores verteu
+      F   G/F C   C7
+      Eis nesse sangue lavados
+      F   D/F#    Gsus    G7
+      Com roupas que tão alvas são
+      C   G/B Am  Am/G
+      Os pecadores remidos
+          F   G7  C   F/G
+      Que perante o seu Deus hoje estão
+      
+      
+      C9  G7  Dm  G7  C9  G7
+      Alvo mais que a neve, alvo mais que a neve
+      C9  C5#/E   F   Dm7
+      Sim, nesse sangue lavados
+          C   Am  Dm  G7  C   F/G
+      Mais alvo que a neve serei
+      
+      C   G/B Am7 Am/G    
+      Quão espinhosa a coroa
+          Dm7 Gsus    G7
+      Que Jesus por nós suportou
+      C   G/B Am7 Am/G
+      Ó quão profunda as chagas
+          Dm  Gsus    G7  C   Bb/G    C7
+      Que nos provam o quanto ele amou
+      F   G/F C   C7
+      Eis nessas chagas pureza
+      F   D/F#    Gsus    G7
+      Para o mais torpe pecador
+      C   G/B Am  Am/G
+      Pois que mais alvo que a neve
+          F   G7  C   F/G
+      O teu sangue nos torna Senhor
+      
+      
+      C   G/B Am7 Am/G    
+      Se nós a ti confessarmos
+          Dm7 Gsus    G7
+      E seguirmos na tua luz
+      C   G/B Am7 Am/G
+      Tu não somente perdoas
+          Dm  Gsus    G7  C   Bb/G    C7
+      Purificas também ó Jesus
+      F   G/F C   C7
+      Sim, e de todo o pecado
+      F   D/F#    Gsus    G7
+      Que maravilha desse amor
+      C   G/B Am  Am/G
+      Pois que mais alvo que a neve
+          F   G7  C   F/G
+      O teu sangue nos torna, Senhor
+      
+      A       E   D   E   A
+      Sobre toda a terra Tu és o Rei 
+          E   D   E   F#m             
+      Sobre as montanhas e o pôr-do-sol
+          E   D   E   Bm          
+      Uma coisa só , meu desejo é:
+          D   E   A           
+      Vem reinar de novo em mim
+      
+      
+      A       E   D   E   A               
+      Reina em mim com Teu poder
+          E   D   E   F#m             
+      Sobre a escuridão,sobre os sonhos meus 
+          E   D   E   Bm              
+      Tu és o Senhor de tudo que sou
+          D   E   A           
+      Vem reinar em mim, Senhor
+      
+      
+      A       E   D   E   A               
+      Sobre o meu pensar, tudo que eu falar
+          E   D   E   F#m             
+      Faz-me refletir a beleza que há em Ti
+          E   D   E   Bm              
+      Tu és para mim mais que tudo aqui
+          D   E   A           
+      Vem reinar de novo em mim
+      
+      
+      
+      
+      
+                                *******
+      
+      
+          G   F   C
+      Jesus
+          G   F   C
+      Você me libertou
+          G   F   C
+      Você me salvou
+          G   F   C
+      Você me libertou
+      
+      
+          Gm  C7  Gm  C7
+      Estava condenado, à morte sem fim
+          G   F   C
+      Mas eis que meu Jesus me absolveu
+          D   D#
+      Pois Ele morreu por mim
+      
+      
+          Gm  C7  Gm  C7              
+      Eu era escravo , do pecado e do mal
+          G   F   C
+      Mas com seu sangue Cristo me comprou
+          D   D#
+      Seu servo agora eu sou
+      
+          G   D   Em      C   D7
+      O Senhor Deus está no meio de ti
+      G   D   Em  C   D7  G
+      O Senhor Deus te salva
+          D   Em
+      Sobre ti se alegrará
+      Am  D7  C   D7
+      Ele em amor te renovará e deixará sobre ti
+          G   D   Em  C   D7  G   D   Em
+      A alegria   alegria
+          C   D   C   D
+      Alegria,    alegria
+          G   D   Em  C   D   G   D   Em
+      Deixará Uô Uô ô ô ô ô
+      
+      
+      
+                         ******* 
+      
+      
+      
+      F9  Am7
+      Seja engrandecido, ó Deus da minha vida
+          Bb  G7  Csus    C7
+      Tu és o Deus da minha salvação
+      F9  Am7
+      És a minha rocha, a minha segurança
+          Bb  G7  Csus    C7
+      Meus lábios sempre te exaltarão
+      
+          F9  Cm7 F7  Bb
+      Aleluia, te louvo, pois sei
+          G   Csus    C7
+      Que sobre todos és Senhor
+          F9  Cm7 F7  Bb
+      Aleluia, te louvo, pois sei
+          Gm7 C7  F   Bb/C
+      Que sobre todos és Senhor
+      
+          F9  Cm7 F7  Bb  Gm7 C7  F9  Bb/C
+      Aleluia ! Aleluia ! Aleluia ! Louvemos ao Senhor
+      
+      
+      
+                         ******* 
+      
+      
+          F   Dm7 Gm  C7
+      Eu só confio no Senhor, que não vai falhar
+          Gm  C7  F   Bb/C
+      Eu só confio no Senhor, sigo a cantar
+      
+          F   F7  Bb
+      Se o céu chegar a escurecer e o sol tardar
+      Gm  C   C7  F   Bb/C    F
+      Eu só confio no Senhor, que não vai falhar
+      
+          Gm  Csus    C7  F
+      Posso confiar, posso confiar
+      Dm7 Gm  Csus    C7  F   Bb/C
+      Que um lar no Céu, Cristo vai me dar
+      G   C   G   G       C   D   C
+      Aalêluia. Aaleluia
+          D   C   G               
+      Tu és Santo ó Cordeiro de Deus
+      
+      
+      G   C   D   C   C   D   G   D   G     Aalêluia. Santo. Santo
+          C   G   Em7 D            
+      É o Cordeiro do Trino Deus
+      
+      Am7 C   Am7 C
+      Digno Tu és. Digno Tu és
+      C   D   G    
+      De todo louvor
+      
+      D   G
+      Santo.  
+          C   G   Em  D    
+      É o cordeiro do Trino Deus
+      
+      Am7 C   Am7 C
+      Digno Tu és. Digno Tu és
+      C   D   G
+      Amém 
+      
+      ******* 
+      
+      
+      D   Dsus    D                                      
+      Vem, esta é a hora da adoração
+      A   A9  Em  G                                                     
+      Vem, dar a Ele seu coração
+      D   Dsus    D                                                                          
+      Vem, assim como estás para     adorar      
+      A   A9  Em  G                                                                               
+      Vem, assim como estás diante do Pai
+      D
+      Vem 
+      G   D                                               
+      Toda língua confessará o Senhor 
+      G   D                                             
+      Todo joelho se dobrará
+      G   Bm                      
+      Mas aquele que a Ti escolher
+          G   A                    
+      O tesouro maior terá
+      
+      B7 (modular)
+      
+      E   Esus    E                                                               
+      Vem, esta é a hora da adoração
+      B   B9  F#m A                               
+      Vem, dar a Ele seu coração
+      E   Esus    E                                   
+      Vem, assim como estás para    adorar
+      B   B9  F#m A                                        
+      Vem, assim como estás diante do Pai
+      E
+      Vem 
+      A   E                        
+      Toda língua confessará o Senhor 
+      A   E                       
+      Todo joelho se dobrará
+      A   C#m                      
+      Mas aquele que a Ti escolher
+          A   B                    
+      O tesouro maior terá
+          D   Em  A7  D7M Bm  Em  Asus    A7  D
+      Aleluia, aleluia, aleluia, aleluia
+      
+      
+          D9  A/D
+      Senhor me alegro em ti
+          Am/D    Em
+      De júbilo salta o meu coração
+          Asus    Bbº Bm7 Bm/A
+      Pois vitórias recebi e também perdão
+          G9  A/G D   G/A
+      Pois vitórias recebi e também perdão
+      
+      
+      D   Em  A7  D7M Bm  Em  Asus    A7  D
+      Aleluia, aleluia, aleluia, aleluia
+      
+      
+          D9  A/D
+      Passei tribulação
+          Am/D    Em
+      E acusação do tentador
+          Asus    Bbº Bm7 Bm/A
+      Mas peguei na tua mão que me sustentou, Senhor
+          G9  A/G D   G/A
+      Mas peguei na tua mão que me sustentou
+      
+      
+          D9  A/D Am/D    Em
+      E na comunhão dos santos, eu quero declarar
+          Asus    Bbº
+      Não só com a minha boca
+          Bm7 Bm/A
+      Mas também com o meu viver
+          G9  A/G D   G/A
+      Que da minha vida tu és Senhor
+      
+      
+      
+      
+                         ******* 
+      
+      
+      
+      
+          C9  C/E F   G7
+      Espírito, enche a minha vida
+      F   Em  F   Em  Am
+      Enche-me do teu poder pois de ti eu quero ser
+          Dm  G7  C   F/G
+      Espírito enche o meu ser
+          C7
+      
+      F   G/F Em  Am
+      As minhas mãos eu quero levantar
+      F   Em  Am
+      E em louvor te adorar
+      F   G/F Em  Am
+      Meu coração eu quero derramar
+          Dm  Gsus    G7  C   C7
+      Diante do teu altar
+          C   C/E F
+      E Deus criou o homem sim
+          C/E
+      Para o louvor da sua glória
+      Dm  G   C/E F
+      Mas esse homem preferiu
+          Gsus    G7
+      Não dar louvor a sua glória
+          Am7 Am/G
+      Por isso Deus mandou Jesus
+          D/F#    D7
+      Pra consertar a sua história
+          Dm  C/E F
+      Vamos cantar e aprender
+          F/G C   Gsus    G7
+      O que Deus fez pra sua glória
+      
+          C   C/E F
+      Jesus sofreu pra nos salvar
+          C/E
+      Para o louvor da sua glória
+      Dm  G   C/E F
+      Jesus morreu pra nos salvar
+          Gsus    G7
+      Para o louvor da sua glória
+          Am7 Am/G
+      Ressuscitou pra nos salvar
+          D/F#    D7
+      Para o louvor da sua glória
+          Dm  C/E F
+      E vivo está pra receber
+          F/G C   
+      Nosso louvor pra sua glória
+      
+      
+      
+      ******
+      
+      
+      
+          A9  F#m7
+      Digno de glória e honra
+          D9  Bm7 
+      Levantemos nossas mãos
+          G7M Esus    E7     
+      Pra teu nome exaltar
+      
+      
+          A9
+      Porque grande és Tu
+          F#m7
+      Maravilhas fazes Tu
+          D9  Bm7
+      Não há outro igual a Ti
+          Esus    E7   
+Não há outro igual a Ti
+     (A9)
+  
+
+    C   Dm7 G   F   G/B C
+Tu és fiel, Senhor, meu pai celeste
+F   C   D7  Gsus    G7
+Pleno poder aos teus filhos darás
+F/G C   C7  Am/F
+Nunca mudaste, tu nunca faltaste
+F#º C   G7  C
+Tal como eras, tu sempre serás
+
+
+Gsus    G7  F   C   A7  Dm7 
+Tu és fiel, Senhor, tu és fiel, Senhor
+G/B C   G/D D   Gsus    G7
+Dia após dia, com bênçãos sem fim
+G7  C   C7  F7M
+Tua mercê me sustenta e guarda
+F#º C   F/G G7  C
+Tu és fiel, Senhor, fiel a mim
+
+
+C   Dm7 G   F   G/B C
+Flores e frutos, montanhas e mares
+F   C   D7  Gsus    G7
+Sol, lua, estrelas no céu a brilhar
+F/G C   C7  Am/F
+Tudo criaste na terra e nos ares
+F#º C   G7  C
+Todo o universo vem, pois, te louvar
+
+
+
+Tu és fiel, Senhor, ...
+
+
+C   Dm7 G   F   G/B C
+Pleno perdão tu dás, paz, segurança
+F   C   D7  Gsus    G7
+Cada momento me guias, Senhor
+F/G C   C7  Am/F
+E no porvir, ó, que doce esperança
+F#º C   G7  C
+Desfrutarei do teu rico poder
+
+
+
+Tu és fiel, Senhor, ...
+
+Am  G   F   Am
+Cantai pois a vitória é ganha
+    C   D   E   Am
+O inimigo afundou-se no mar
+Am  G   F   Am
+Cantai pois a vitória é ganha 
+    C   D   E   Am
+As coisas velhas ficaram pra trás
+    Am  G   F   Am
+Vencidas as barreiras que nos impediam
+    Am  G   F   Am
+Entremos na terra de Canaã
+
+Am  G   F   Am  C   D   E   Am
+Aleluia, aleluia, ô aleluia
+
+
+
+                   ******* 
+
+
+
+    Gm  Gm7M
+A vida que Cristo oferece
+Gm7 Gm7b
+O mundo não pode lhe dar
+    Cm7 D7  C/E D7
+É vida em seu coração
+    Gm  Gm7M    
+É vida perfeita em amor
+    Gm7 Gmb7
+É vida aos pés do Senhor
+    Cm7 D7  C/E D7
+É vida de Deus em você
+    G7M Bm7 
+É vida que nasce da morte
+    Dm7 G   C
+É vida que traz o perdão
+Cm7 G   E7
+É muito mais que uma religião
+    Am7 D7  Cº/D#   Em  
+É Cristo vivendo em você
+    Eb5#
+Lá laiá, lá laiá. 
+    Am7 C/D D7  G
+É Cristo vivendo em você
+
+
+
+                   *******
+
+
+
+    D   D/C#    Bm7 C/A
+Se confessarmos os nossos pecados
+G   D   Em  Asus    A7
+Ele é fiel e justo
+    Am  D7  G9  Gm
+Para nos perdoar dos pecados
+    D   Bm  Em  Asus    A7  G   D
+E nos purificar de toda a injustiça
+Gm  F   Gm  F
+    Gm
+Há certos momentos na vida
+    Cm7 Gm
+Que a gente não compreende
+    Bb  Dsus    D7
+Por que tanta luta tanta aflição
+    Gm  Eb
+Quando vem a enfermidade
+    Bb
+E até separação
+    Dsus    D7  G9
+Parece que a gente não vai resistir
+
+
+    C   D/C G/B
+Jesus está no controle de todas as coisas
+Em7 F   D7  G/B
+Sabe o princípio e o fim do que vai me acontecer
+G/B Am  G   C   D/C G/B
+Jesus está no controle de todas as coisas
+Em  F   Dsus    D7  G
+Pra minha vida eu sei que tem sempre o melhor
+
+
+    Gm
+Talvez seja perseguido
+    Cm7 Gm
+Mas nunca desamparado
+    Bb  Dsus    D7
+Quem sabe até passe tribulação
+    Gm  Eb
+Mas é certo que a presença 
+    Bb
+Do amigo e pastor Jesus
+    Dsus    D7  G9
+Garante a vitória de quem nele crê
+
+
+                   ******* 
+
+
+C9  G/B Am7 F   Dm7 Gsus    G7  
+Cobre-me, com tuas mãos
+C9  G/B Am7 F   Dm7 Gsus    G7
+Com poder vem me esconder, Senhor
+
+Em7 F   G   C9
+Se o trovão e o mar se erguendo vêm
+Em7 F   G   Am7
+Sobre a tempestade eu voarei
+G   F   G   C
+Sobre as águas Tu também és Rei
+Am7 F   Gsus    G7  C9
+Descansarei, pois sei que és Deus
+
+C9  G/B Am7 F   Dm7 G7  
+Minha alma está segura em Ti
+C9  G/B Am7 F   Dm7 Gsus    G7
+Sabe bem que em Cristo firme está
+D/E A9  E7
+Não fica bem a gente passar bem
+    A9  A7  G/B A/C#
+E o outro carestia
+    D9  E7
+Ainda mais quando se sabe o que fazer
+    A   A7  G/B A/C#
+E não se faz
+    D9  E/D
+Como fruto do amor de Cristo
+C#  F#m7
+Fruto do seu compromisso
+    D   A   E7  A
+Vendeu o homem o que tinha e repartiu
+
+
+    E7  D   A
+Era o seu nome Barnabé, natural de Chipre
+    E7  D   A
+Também chamado de José das Consolações
+C#7 F#m7    D   A
+Homem bom e piedoso, cheio de fervor e fé
+E7  A   D/E
+Homem de Deus
+
+
+D/E A9  E7
+E quando Saulo converteu-se a Cristo
+    A9  A7  G/B A/C#
+Lhe faltou amigos
+    D9  
+Alguém que fosse companheiro
+E7  A   A7  G/B A/C#
+Fonte de consolo e abrigo
+    D9  E/D
+Como fruto do amor de Cristo
+C#  F#m7
+Fruto do seu compromisso
+D   A   E7  A
+Foi um homem procurá-lo, dando-lhe a mão
+
+
+D/E A9  
+E quando a igreja se espalhou
+    E7  A9  A7  G/B A/C#
+Por todo canto que havia
+    D9  E7
+Providência, sim, por mão de Deus
+    A   A7  G/B A/C#
+Chegou a Antioquia
+    D9  E/D
+Precisando de um pastor de almas
+C#  F#m7
+Mesmo de um pastor de homens
+D   A   E7  A
+Foram procurar aquele que qualificou
+
+    G9  D   C   D
+Te agradeço, ó Pai, pelo amor derramado
+    G   D   C   D
+Pela tua provisão, nada tem nos faltado
+    Em7 D   B7  Em7
+Pela tua proteção e por tua misericórdia
+    C   D   C   G
+Em tudo tu és pai, Senhor
+
+
+    Em7 Bm7 Em7 Bm7
+Te agradeço, ó Pai ! Te agradeço, ó Filho
+    C   G   D   G
+Te agradeço, ó Espírito do Senhor
+
+
+    Em7 Bm7
+Pelas nossas provações
+    Em7 Bm7
+Pelas nossas famílias
+    C   G   D   G
+Te agradeço, ó Espírito do Senhor
+    Em7 Bm7
+Pelos nossos irmãos
+    Em7 Bm7 
+Pela tua igreja
+    C   G   D   C
+Te agradeço, ó Espírito do Senhor.
+
+
+
+
+
+                   ******* 
+
+
+
+
+D   G/D D
+Reina o Senhor, tremam os povos
+A   F#m7
+Reina o Senhor, tremam os povos
+Bm7 Bm/A    G   Asus    A7
+Ele está entronizado acima dos querubins
+
+
+    Bm7 F#m7
+O Senhor é grande em Sião
+    G   Em7 G   Asus    A7
+E sobremodo elevado, acima de todos os povos
+
+
+    Bm7 F#m7
+Exaltai ao nosso Deus
+    G   Em7 G   Asus    A7
+E prostrai-vos a seus pés pois só ele é santo
+
+    E   C#m7
+Quando terminar esta vida
+    A   E   D   A
+E lá no céu eu chegar
+    E   C#m
+Haverá uma multidão de irmãos
+    F#  B7
+Esperando pra me abraçar
+    E   E7
+E perguntarão a uma voz
+    A   G#7
+Voltados para mim
+    E   G#m C#m
+Oh, conta-nos como você irmão
+    F#m7    B7  E   D   A
+Venceu e chegou aqui
+
+    E   F#m A   Bsus    B7  
+E falarei, e cantarei de Jesus que me amou
+E   G#m A       F#m7    Bsus    B7  E   D   A
+Que por este pecador a si mesmo se entregou
+    E   C#m7    A   E   D   A
+Foi graça, graça, superabundante graça
+E   C#m F#sus   F#m7    B7  
+Graça, graça, preciosa e doce graça
+
+    E   C#m7
+Foi graça irmão, graça irmão
+    A   G#7
+Eu vos digo que foi assim
+    E   G#  C#m7    A
+Foi só pela graça de Jesus
+    F#m7    Bsus    B7  E
+Que eu venci e cheguei   aqui
+
+
+
+
+
+
+                   ******* 
+
+
+
+
+    F   Dm7
+Irei ao Céu, é maravilhoso
+Bb  Csus    C7
+Cheio de glória e gozo
+F   F7  Bb  Bbm
+Lá hei de ver o meu Salvador
+    F   C7  F   Bb  F
+O Céu é um lugar maravilhoso
+
+
+    F9  Am7 Gm  Bb/C
+Cantamos ao nosso grande Deus
+    F   Am  Gm  Bb/C
+Ao rei que é digno de louvor
+
+
+F   C7
+Excelso, supremo
+    Gm7 Csus    C7
+E mui digno de louvor
+
+
+    F   Eb/F
+Hosana, hosana
+    Bb  C   F   Gm  C7
+Hosana ao nosso rei
+
+
+
+
+                   ******* 
+
+
+    F
+Cristo é a nossa vida
+    Am
+E o motivo do louvor
+    Bb  Gm  Csus    C7
+Em nosso novo coração
+    F   
+Pois morreu a nossa morte
+    Am
+Pra vivermos sua vida
+    Bb  Gm  Csus    C7
+Nos trouxe grande salvação
+
+
+
+                   ******* 
+
+
+
+D7M Bm7
+Quero adorar-te
+Em  A7
+Declarar que eu te amo
+F#m Bm
+Tu és tudo para mim
+    Em  Asus    A7  G/D D9
+Eu quero engrandecer teu nome  -  ó Deus
+    F#m B7
+Andar em comunhão contigo
+    Em  Asus    A7  Bb7M    D7M
+Render meu coração a ti Senhor
+
+    D9  D/F#    G   A7  D9
+Esperei confiantemente no Senhor
+    G9  D/F#    Asus    A7
+E ele se inclinou para mim
+    F#m Bm7 G9  Gm/C
+E me ouviu quando clamei por socorro
+    D   Asus    A7  G   D
+E me ouviu quando clamei  por socorro
+
+G7M A/G F#m Bm7
+E me pôs nos lábios uma nova canção
+    Em7 Asus    A7  D   A7
+Um hino de louvor ao nosso Deus
+D   D#º G   E7
+Muitos verão estas coisas com temor
+    D/F#    Asus    A7  D
+E confiarão no Senhor
+D   D#º G   E7
+Muitos verão estas coisas com temor
+    D/F#    Asus    A7  D
+E confiarão no Senhor
+
+    D9  D/F#    G   A7  D9
+Tirou-me de um poço de lama e perdição
+    G9  D/F#    Asus    A7  
+Colocou-me os pés sobre a Rocha
+    F#m Bm7 G9  Gm/C
+E me firmou os passos
+    D   Asus    A7  G   D
+E me firmou os passos
+
+
+
+
+                   ******* 
+
+
+
+    Dm  Bb  C   F   A7
+Jeová é o teu cavaleiro que cavalga para vencer
+Dm  Bb  C   A7  Dm  C   Dm
+Todos os meus inimigos cairão diante de ti
+    C   A7  Dm  C   Dm
+Cairão diante de ti
+
+F   C   A7  Dm
+Sobre a tua tenda, ó Israel não vale encantamento
+Bb  F       
+Sobre a tua tenda, ó Israel 
+    A7  Dm
+Está a bênção do Senhor
+    Bb  F   A7  Dm
+A força dos teus opressores nunca te alcançará
+    Bb  F
+Existe uma nuvem de glória
+    Bb  F
+Existe uma chama que arde.
+
+    Bb  C   Dm
+No teu arraial ouve-se vivas de júbilo
+
+G   Em  
+Ministrar-te-ei
+    Am7 D
+Um novo cântico, ó Senhor
+    G   Em
+Adorarei a ti 
+    Am7 Dsus    D7
+Em espírito e em verdade
+
+
+Am7 D   G   Em
+Qual águia que sobe
+    Am7 D   G   G7
+Assim adorarei
+Am7 D   G   Em
+Qual águia que sobe
+    Am7 C   D
+Assim será o meu louvor
+
+    G   Em
+Aleluia, aleluia
+    Am7 C   D
+Aleluia, aleluia ao Senhor
+
+
+
+
+                   ******* 
+
+
+
+
+F9  C9  Cm  Bb
+Louvado seja, Senhor teu nome
+Bbm F   C#  Csus    C7
+Entronizado entre as nações
+F9  C9  Cm  Bb  
+Exaltarei a ti Senhor
+Bbm F   Dm  G   Csus    C7
+Pelo que tu és, eu te adorarei
+
+
+F9  C9
+Recebe a minha adoração
+    Cm  Bb
+Que é fruto de tua graça a mim
+    Bbm F   Dm
+E do teu amor que restaura em mim
+    G   Csus    C7
+O meu amor por ti Jesus.
+
+
+F9  C9
+Engrandecerei
+    Cm  Bb
+E exaltarei seu nome
+    Bbm F   Dm
+Diante dos reis e dos poderosos
+    G   Csus    C7  F
+Eu louvarei a ti Senhor
+
+    F
+Os que confiam no Senhor
+    Dm
+São como os montes de Sião
+    Bb
+Que não se abalam
+    Gm  Csus    C7
+Mas permanecem para sempre
+
+
+    F
+Como em volta de Jerusalém
+    Dm  Bb
+Estão os montes, assim o Senhor
+    Gm  Csus    C7
+Em volta do seu povo
+
+
+    F   Dm
+Autoridade e poder, o domínio em suas mãos
+    Bb  Gm  Csus    C7
+Pois o Senhor é Deus, o Senhor é rei dos povos
+
+
+    F   
+Cale-se diante dele a terra
+    Dm
+Dobrem joelhos, ergam-lhe as mãos
+    Bb  Gm  Csus    C7
+Pois o Senhor é Deus, o Senhor é rei dos povos
+
+
+
+
+
+                   ******* 
+
+
+
+
+E   E/G#    A   B7  E   E/G#    A   B7
+Celebrai a Cristo, celebrai
+E   E/G#    A   B7  E   E/G#    A   B7
+Celebrai a Cristo, celebrai
+
+
+    B7  C#m
+Ressuscitou, ressuscitou
+    B7  C#m
+E hoje vive para sempre
+
+
+Bsus    B7  Bsus    B7
+Vamos celebrar ! Vamos celebrar !
+Bsus    B7
+Vamos celebrar !
+    Bsus    B7  E   E/G#    A   B7  E
+Ressuscitou o Senhor
+
+
+    D9  C#  F#m
+Em nome do Senhor Jesus
+B7  Em7 Asus    A7  D7M G/A
+Quero me entregar pra sempre ao meu Deus
+    D9  C#  F#m
+Eu sei que tentações virão
+    B7  Em
+Mas Cristo já venceu
+    Asus    A7  Am  D7
+Morrendo em meu lugar
+
+
+    G9  A/G F#m
+Agora, por todo o meu caminho
+    Bm  Em  Asus    A7  Am7 D7
+Não vou ficar sozinho, confio no Senhor
+    G9  A/G F#m
+Entrego a ele o meu futuro
+    B7  E7
+Pois sei que estou seguro
+    Asus    A7  D9
+Nas promessas do meu Deus
+
+
+
+
+                   ******* 
+
+
+
+
+E
+Celebrai com júbilo ao Senhor
+C#m7
+Todos os moradores da terra
+A   F#m
+Servi ao Senhor com alegria
+Bsus    B7  Bsus    B7
+Apresentai-vos a ele com cânticos
+
+
+E
+Sabei que o Senhor é bom
+C#m7
+E eterna a sua bondade
+A   F#m
+E a sua fidelidade
+Bsus    B7  Bsus    B7
+De geração em geração
+
+
+E
+Aleluia, glória, aleluia !
+C#m7
+Aleluia, glória, aleluia !
+A   F#m
+Aleluia, glória, aleluia !  
+Bsus    B7  Bsus    B7
+Aleluia, glória, aleluia !  
+
+D7M G7M A9  D7M
+Alegrar-me-ei, alegrar-me-ei
+Bm7 G9
+Alegrar-me, alegrar-me
+Em7 Asus    A7  D   G   D
+Alegrar-me-ei no Senhor
+
+
+
+D7M G7M
+Pois tem me dado razão pra viver
+A   D   G   A
+O viver é Cristo e o morrer é lucro
+D   G   A
+E o privilégio de amar e servir
+    D   G   A
+Mesmo que isto envolva dor e sofrimento
+G   Asus    A7
+Alegrar-me-ei
+
+
+D7M G7M
+Pois tem me dado razão pra entender
+A   D   G   A
+Que ele me ampara em qualquer momento
+D   G   A
+Sua Palavra me faz compreender
+    D   G   A
+Que em meio às provas, provo o seu sustento.
+G   Asus    A7
+Alegrar-me-ei
+
+
+                   ******* 
+
+
+G    F  C
+
+    G7
+Batam palmas de alegria, cantem todos ao Senhor
+    F7  C7  G7
+Porque Deus é um Deus tremendo, é o grande rei
+    G7
+Ele está no trono santo, ele reina entre as nações
+    F7  C7  G7
+Ele é poderoso Deus. Ele domina tudo
+
+
+C7  G7
+Deus é o grande rei do mundo inteiro
+C7  D7
+Chefe de todos, Deus é o primeiro
+    (D7 G   F   C)
+
+    G7
+Ele habita entre os louvores, ele vem na adoração
+    F7  C7  G7
+Ele guarda o seu povo. Glória a Deus !
+
+    E   C#m7
+Glória pra sempre 
+    F#m7    B7
+Ao Cordeiro de Deus
+    E   C#m7
+A Jesus o Senhor 
+    F#m7    B7
+Ao Leão de Judá
+    E   C#m
+A raiz de Davi 
+    F#m7    A/B E9  A/E
+Que venceu e o livro abrirá
+    E   A/E B/E E   A/E
+O céu, a terra e o mar
+    G#m C#m F#m B7
+E tudo o que neles há
+    E   E7  A9  Am/F#
+O adorarão e confessarão
+    E/G#    C#m F#m B7  E   A/E E
+Jesus Cristo é o Senhor
+
+
+        F#m B7  E   A/E
+Ele é o Senhor, ele é o Senhor
+    C#m F#7
+Ressurreto dentre os mortos
+    D9  A/B
+Ele é o Senhor
+B7  E   E7
+Todo o joelho se dobrará
+    A9  Am/F#
+Toda a língua confessará
+    E/G#    C#m F#m B7  E   A/E B/E E
+Que Jesus Cristo é o Senhor
+
+
+
+
+
+                   ******* 
+
+
+
+
+Em7
+Rei dos Reis, Senhor dos Senhores
+B7  Em
+Glória ! Aleluia !
+
+
+Em  B7  Em
+Jesus, Príncipe da Paz, aleluia
+    B7  Em
+Reina para sempre. Glória ! Aleluia !
+
+C7M F7M C7M F7M
+Bom é louvar ao Senhor
+C7M F7M G/B F/A G7
+E cantar louvores ao teu nome
+C7M F7M C7M
+Pois ele é digno de louvor
+F7M Dm7
+Rocha minha, meu escudo
+Gsus    G7  C7M F7M
+Minha salvação
+
+
+    C7M F7M C7M F7M
+Videira verdadeira, ó tu Filho de Deus
+C7M F7M C7M G7
+Rosa de Sarom, santo tu és
+    C7M F7M
+E tudo que procuras
+    C7M Gsus    G7
+Está nessa pessoa
+    F7M Gsus    G7  C7M F7M
+E seu nome é Jesus
+
+
+C7M F7M C7M
+Aleluia, louvai a Deus
+    F7M C7M
+Aleluia, louvai a Deus
+
+
+
+
+
+                   ******* 
+
+
+
+
+G9  G/B C9  Am7 
+Jesus te entronizamos
+D7  D/C Bm7
+Declaramos que és rei
+Em  Bm7
+Tu estás no meio de nós
+C9  A/C#    D7
+Te exaltamos com louvores
+
+G9  G/B C9  Am7 
+A ti fazemos um trono de louvores
+D7  Em  Em/D    
+A ti fazemos um trono de louvores
+C   B7  Em7 Em/D
+A ti fazemos um trono de louvores
+
+
+    Am7 Dsus    D7  G9  Em
+Ó, vem Jesus e toma o teu lugar
+    Am7 Dsus    D7  G9  Em
+Ó, vem Jesus e toma o teu lugar
+    Am7 Dsus    D7  C   G9
+Ó, vem Jesus e toma o teu lugar
+    G9  D/F#    
+Cada estrada em que eu andei
+    C/E D/F#
+Eu pensei, daria certo
+    G   D/F#    
+Toda a terra em que habitei
+    C/E Dsus    D7
+Terminou em um deserto
+    Em7 Em/D
+Quando Deus achou-me em trevas
+    C7M Dsus    D7
+Disse: haja luz
+    Em  Em/D
+Quando Deus achou-me em guerras
+    C7M Dsus    D7
+Disse: haja paz
+    G
+Quando Deus achou-me
+    D/F#    C/E D/F#
+Em densas nuvens de tribulações
+    G   D/F#
+Fez nascer um arco-íris
+    C/E D/F#
+No céu do meu coração
+    G   D/F#
+Toda vez que eu tive sede
+    C/E Dsus    G   G/B
+Ele deu-me de beber
+
+
+    C   G/B Am  D   Em  A7
+Água viva deu-me de beber
+    C   G/B Am  D   Eb7M    Dsus    G9
+Água viva deu-me de beber 
+
+
+
+
+
+                   ******* 
+
+
+
+
+G/A D9  Bm  Em7 Asus    
+Eu quero ser, Senhor, amado 
+A7  Em  A/C#    A7  D9  G/A
+Como um vaso nas mãos de um oleiro
+    D7M D7  G7M Gm
+Quebra a minha vida e faça de novo
+    D9  Bm  Em7
+Eu quero ser, eu quero ser
+A7  G/D D9
+Um vaso novo  
+
+F9  Bb/F    F9
+Se tu olhares, Senhor, pra dentro de mim
+    Gm7 Csus    C7
+Nada encontrarás de bom
+    Bb  C/Bb    F   C/E Dm7
+Mas um desejo eu tenho, de ser transformado
+    Gm7 F/A
+Preciso tanto do teu perdão
+Bb  Csus    C7
+Dá-me um novo coração
+
+F   Fsus    F/A Bb  Gm7 C
+Dá-me um coração igual ao teu, meu mestre
+F   Eb/G    F/A Bb
+Dá-me um coração igual ao teu
+    Csus    C/Bb    Am7 Dm7
+Coração disposto a obedecer
+    Am7 Dm7
+Cumprir todo o teu querer
+Gm7 Bb/C    C   F
+Dá-me um coração igual ao teu
+
+
+    C/G C   Dm7
+Ensina-me a amar o meu irmão
+    C
+A olhar com os teus olhos
+    F
+Perdoar com o teu perdão
+Bb  C/Bb
+Enche-me com o teu Espírito
+Am  Dm7
+Endireita os meus caminhos
+C   Bb  Bb/C    F
+Oh, Deus, dá-me um novo coração
+    Dsus    D7
+
+G   Gsus    G/B  C  Am7 D
+Dá-me um coração igual ao teu, meu mestre
+G   F/A G/B C
+Dá-me um coração igual ao teu
+    Dsus    D/C Bm7 Em7
+Coração disposto a obedecer
+    Bm7 Em7
+Cumprir todo o teu querer
+Am7 C/D D7  G
+Dá-me um coração igual ao teu
+
+******* 
+
+F       C   Bb
+Quem pode livrar como o Senhor?
+F       C   Bb  C   F
+Ele é poderoso pra me guardar
+
+
+    C   Gm7
+Quando os meus inimigos
+F       C   Gm7     
+Se levantaram contra mim
+Bb  C9  F   Dm  Gm  
+O Senhor estendeu sua mão para mim
+    Csus    C7  F   F7  
+E me deu a vitória
+    D9  A/C#    Bm  Bm/A
+A começar em mim 
+G   D/F#    Asus    A7
+Quebra corações
+    D   A/C#    G/B D/A
+Pra que sejamos todos um
+G   Asus    A7  D   G/A
+Como tu és em nós
+
+
+F#m7    Bm7
+Onde há frieza, que haja amor
+G9  D/F#    Asus    A7
+Onde há ódio, o perdão
+F#m7    Bm7
+Para que teu corpo cresça assim
+G   Asus    A7  D9
+Rumo a perfeição
+
+
+
+
+
+                   ******* 
+
+
+
+
+    F9  Am7
+Nosso Deus é soberano
+    Bb  Gm  Csus    C7
+Ele reina antes da fundação do mundo
+
+
+    F9  Am7
+A terra era sem forma e vazia
+    Bb  Gm
+E o Espírito do nosso Deus
+    Bb/C    Bbº/C
+Se movia sobre a face das águas
+    F9  Am7
+Foi ele quem criou o céu dos céus
+    Bb7M    G7  Bb/C    Bbº/C
+E fez separação das águas da terra seca
+    F9  Am
+Foi ele quem criou os luminares
+    Bb7M    G7  Gm  Bb/C
+E criou a natureza e formou o homem
+
+
+    F9  Am7
+Glória a Deus por suas maravilhas
+    Bb  G7  Gm  C7
+Pela sua grandeza, glória a Deus
+
+
+    Fsus    F9
+Glória a Deus
+
+D7M G/D A/D G/D
+Hoje é tempo de louvar a Deus
+    A/D Bm  C7M G/A A7
+Em nós agora habita o seu Espírito
+    Em  A7  D   Bm  Em  A7  D   Bm
+Então é só cantar e a Cristo exaltar
+    Em  D/F#    G   E/G#    Asus    A7
+E sua glória encherá este lugar
+
+
+    D7M F#m G7M A7  
+Vem louvar, vem louvar, vem louvar
+
+
+D7M G/D A/D G/D
+No meio dos louvores Deus habita
+    A/D Bm  C7M G/A A7
+E é seu prazer cumprir o que nos diz
+    Em  A7  D   Bm  Em  A7  D   Bm
+Então é só cantar e a Cristo exaltar
+    Em  D/F#    G   E/G#    Asus    A7
+E sua glória encherá este lugar
+
+
+    D7M F#m G7M A7  
+Vem louvar, vem louvar, vem louvar
+
+
+    D7M
+Vem louvar
+
+
+
+
+
+                   ******* 
+
+
+
+
+A9  D7M A9  D7M 
+Conheci um grande amigo, ele é filho de Deus Pai
+A9  D7M A9  D7M
+O seu nome é Jesus Cristo, nele a gente pode confiar
+A9  D7M A9  D7M 
+Conheci um grande amigo, ele é filho de Deus Pai
+A9  D7M A9  E   D7M
+O seu nome é Jesus Cristo, nele a gente pode confiar
+
+A9  E   D7M A   E   D7M
+Jesus ! Jesus ! Nele a gente pode confiar
+
+
+A   E   D
+Você só pode ser feliz
+    A
+Tendo Jesus no coração
+
+    C   G/B Am  Fm
+À sombra de tuas palavras descansa minha alma
+    C   D   Gsus    G7
+No rio de tuas promessas libero a fé
+    F   C   Em  Am
+Tu és soberano no Céu e poderoso na terra
+    D   D7  Gsus    G7
+O único Deus em quem confia meu ser
+
+
+    F   C   Em  Am
+Senhor, espero em ti, jamais serei confundido
+    D   F   G
+Pois a tua Palavra destrói todos os meus inimigos
+
+
+    Ab  Bb  C
+Destrói todos os meus inimigos
+
+
+
+
+
+                   ******* 
+
+
+
+
+    C   G/B Am7 Dm7 F/G
+A vitória é daquele que o contemplar
+G7  Dm7 Gsus    G7  C9  Esus    E7
+Ao cordeiro Cristo, Leão da Tribo de Judá
+    Am7 Am/G    Dm7 G7
+Que foi morto e com seu sangue pôde nos comprar
+    Dm7 G7  F/C C9  F/G
+Homens que com ele sobre a terra vão reinar
+
+
+    C   G/B Am7 Dm7 F/G
+A vitória é daquele que o adorar
+G7  Dm7 Gsus    G7  C9  Esus    E7
+Ao seu lado, no seu trono, se assentará
+    Am7 Am/G    Dm7 G7
+Se a Jesus seguir e for por onde ele andar
+    Dm7 G7  F/C C9  Bb/C    C7
+No seu monte santo um novo canto entoará
+
+
+    F7M G/F Em7 Am7
+A vitória do Senhor é certa, aleluia
+    Dm7 Gsus    G7  Bb/G    C7
+Com o sopro de sua boca, sim, destruirá
+    F7M E7  Am  Fm
+O inimigo, anticristo, não resistirá
+    C   Am  Dm  G7  Am  Am/F#
+Jesus Cristo, o Rei, dominará
+    C   Am  Dm  G7  C
+Jesus Cristo, o Rei, dominará
+
+F   C9  Bb7M    C
+É hora de não olhar pra trás
+F   C9  Bb7M    C
+Só olhar pra Cristo e nada mais
+F   C   Bb7M    C
+Renunciar a velha estrada
+F   C   Bb7M    
+Que outrora você andava
+
+
+Gm  C   F   C   Bb
+É hora de recomeçar uma nova caminhada
+Gm  F   C   Bb7M
+Em nova estrada, seguir a Cristo e mais nada
+
+
+F   C9  Bb7M    C
+É hora de não olhar pra trás
+F   C9  Bb7M    C
+Só olhar pra Cristo e nada mais
+F   C   Bb7M    C
+Viver com ele em cada instante
+F   C   Bb7M    
+Seguir seus passos e ir avante
+
+ 
+
+
+
+                   ******* 
+
+
+
+D   A6/D    D7  
+Calmo, sereno e tranqüilo
+    G9  C
+Sinto descanso neste viver
+D   A6/D    D7
+Isto devo a um amigo 
+    G9  C
+Que só por ele eu pude obter
+
+
+    D7M C/A D7
+Ele é Jesus, meu amigo 
+    G7M C
+Meu Senhor, o Salvador
+    D7M F#m G
+Só por Ele ganhei a vida eterna 
+    Asus    A7  G   A7  D
+Com Deus, com Deus. Com Deus
+
+
+D   A6/D    D7  
+Triste foi sua história
+    G9  C
+Levado a cruz sem pecado algum
+D   A6/D    D7
+Só porque me amou
+    G9  C
+Morreu por mim e não hesitou
+
+    D9  G/D A7  D9  Bm7
+Renova-me, Senhor Jesus
+    Bm/A    Em  A7
+Já não quero ser igual
+    D9  G/D A7  D   Bm7
+Renova-me, Senhor Jesus
+    Bm/A    Em  A7
+Põem em mim teu coração
+    D
+Porque tudo o que há
+Bm
+Dentro de mim
+G   Em  A7
+Necessita ser mudado, Senhor
+    D   F#m
+Porque tudo o que há
+    Bm  Bm/A
+Dentro do meu coração
+G   A7  D
+Necessita mais de ti
+
+*******
+
+
+D   G
+Tua fidelidade é grande
+A9      D
+Tua fidelidade incomparável é
+    Bm7 G
+Ninguém é como tu, bendito Deus
+A   A7  D
+Grande é tua fidelidade
+
+
+
+
+*******
+
+
+
+D9  F#m7    Bm  G   A
+Senhor quero ser como Tu
+D   F#m7    Bm      
+Senhor quero ser como Tu
+    F#  Bm
+Eu quero ser um vaso em Tuas mãos
+Em  D/F#    G   A   D
+Senhor, quero ser como Tu
+
+C7M Am7 Dm7 G
+Bem melhor que tudo que alguém possa ter 
+C7M Am7 D7  Gsus    G7
+É ser de Deus um filho, sim, ser um filho de Deus
+C7M Am7 Dm7 G
+Bem melhor ainda que todo o saber
+C7M Am7 D7  G
+É confiar que Deus sabe por mim
+    F   G/F
+Melhor ainda é poder estar
+    Em7 Am7
+Em dias maus, contudo a sorrir
+    Em7 Am7
+Com esperança de um belo porvir
+F   G   C   Am
+Quando com Deus irei pra sempre morar
+F   G   C
+Quando com Deus irei pra sempre morar
+
+
+
+
+                   ******* 
+
+
+
+D   Em7 F#m7    Em7
+Bom estarmos aqui louvando a Deus
+    D   Em7 F#m Em7
+Podendo exaltar seu santo nome
+
+G7M A/G     
+Tempo para isso
+F#m7    Bm7
+Tempo para louvarmos a Deus
+G   A/G D   D7
+Num só amor num só espírito
+    G/A
+D7M Em7
+Deus, venha nos abençoar
+    Asus    A7  D   G/A
+E que esta união nunca falte para nós
+
+
+A9  D/A E/A D/A
+Vejo a luz do Senhor que brilha
+A9  D/A E/A D/A
+Bem no meio das trevas brilha
+D7  E/D C#m7    F#m7
+Jesus Cristo é a luz deste mundo
+D7M E/D C#m F#m7
+Nos acorda do sono profundo
+G9  Esus    E7  G9  Esus    E7
+Brilha em mim, brilha em mim
+
+
+A9  E   D   A/C#    Bm7
+Brilha Jesus! Mostra ao mundo
+    Esus    E7
+A luz de Deus Pai
+    A   E   D   Bm  E7
+Espírito de Deus vem refulge em nós
+A9  E   D   A/C#    Bm
+Faz transbordar sobre os povos
+    Esus    E7
+Tua graça e perdão
+A   E   D   A/C#    Esus    E7  A
+Vem ordenar, que haja luz, ó Senhor
+
+
+A9  D/A E/A D/A
+Eis me achego ao teu trono incrível
+A9  D/A E/A D/A
+O mais finito ao intangível
+D7  E/D C#m7    F#m7
+Por teu sangue precioso eu ouso entrar
+D7M E/D C#m F#m7
+Minhas sombras da alma vem dissipar
+G9  Esus    E7  G9  Esus    E7
+Brilha Jesus ! Brilha Jesus !
+
+
+
+A9  D/A E/A D/A
+Contemplando tua majestade
+A9  D/A E/A D/A
+Teu reflexo em nossas faces
+D7M E/D C#m7    F#m7
+Cada dia de glória em glória
+D7M E/D C#m F#m7
+Mostre sempre a tua história
+G9  Esus    E7  G9  Esus    E7
+Brilha em mim, brilha em mim
+
+C9  G/B Am  Am/G
+És a nossa estrela da manhã
+    F   C   Dm7 G7
+Cordeiro santo que nos trouxe a paz
+    C9  G/B Am  Am/G
+Em tuas mãos está todo o vencer
+    F   C   Dm7 G
+Resposta a todo aquele que clamar
+    Em
+A verdade é tua palavra
+    F   Fm
+Que não pode mentir
+    C9  Am7 Dm7 G
+Por isso estamos aqui
+
+
+A9  D7M
+Te louvamos, ó Senhor
+E   A9
+Pelo teu imenso amor
+F#m D7M Bm
+Manifesta o teu perdão e poder 
+Esus    E7  C#m F#m
+E assim vamos te adorar
+    Bm  Esus    E7  A9
+Pra sempre, pra sempre, ó meu Deus
+
+
+
+
+
+                   ******* 
+
+
+
+
+    F   Gm  Am  D7
+Há um doce espírito aqui
+    Gm  C7  F
+E eu sei que é o Espírito de Deus
+Bb/C    F   Gm  Am  D7
+Já podemos todos perceber
+    Gm  C7  F   Bb/C    C7
+A presença de Jesus, o Salvador
+
+
+F   Bb  F   F   Bb  F
+Doce presença, presença santa
+A7  Dm
+Vem sobre nós
+    Gsus    G7  Gm  C7
+Enchendo-nos com teu poder
+F   Bb  F
+Nós te adoramos
+    A7  Dm7 Bb
+Por tua presença aqui
+    F   Bb  A7  Dm
+E que renovará os nossos corações
+    G7  Bb  C7  F   Bb
+Louvado seja o Senhor
+
+    C9  G/B Am7
+O Espírito de Deus está aqui
+Dm  G/B Am7
+Operando em nossos corações
+    Dm  G/B Am7
+Trazendo sua vida e poder
+    Dm  G/B E
+Ministrando sua graça e amor.
+    Am7 G   Am
+Os feridos de alma são curados
+    Dm  G   Esus    E7
+Os cativos e oprimidos livres são
+    Am  G   E   Am
+Os enfermos e doentes são sarados
+    Dm  G   C   Am
+Pois o Espírito de Deus está aqui.
+    Dm  G   C9  
+Pois o Espírito de Deus está aqui.
+
+                    
+
+
+
+
+                  *************
+
+
+
+
+C7M F7M C7M F7M
+Pai, eu quero contemplar tua glória e majestade
+C7M F7M C7M F7M
+Pai, eu quero te adorar em espírito e em verdade
+    Dm7 Em
+Não apenas no átrio ou no santo lugar
+    F   Dm7 F   Gsus    G7
+Eu quero te entronizar entre os querubins.
+
+
+    C7M Dm7 
+Ó, leva-me à sala do trono
+    F   G/F C   
+pelo novo e vivo caminho
+    Am  Am/G    
+Pelo sangue de Jesus
+    D/F#    D7  Gsus    G7
+Eterno sumo sacerdote
+
+    C7M Em  F7M
+Ó, leva-me à sala do trono
+    Dm  G   C   G/F
+Pra te adorar, Senhor.
+    Ab  Bb  C7M
+
+Dm
+Ouve-se o júbilo de todos os povos
+    C
+Os reis se dobraram ao Senhor
+Bb  Gm  
+Ouve-se o brado de vitória
+    A7  
+O Dia do Senhor chegou
+Dm  C
+Ouve-se em todos os povos que um novo rei surgiu
+    Bb  Gm  Em  A7
+Impérios reconhecem que sua destra reinará
+
+
+    Dm  C
+Leão de Judá, Leão de Judá
+    Bb  Gm  Asus    A7  Fim:    C   Dm  C
+Leão de Judá, Prevaleceu !
+
+
+    Bb  C   Dm
+E os povos verão e virão
+    Bb  C   Dm
+A Sião aprender sua lei
+    Eb  Gm  A7
+Pois a sua justiça governará
+
+
+
+
+
+                   ******* 
+
+
+
+
+A   C#m D7M Dsus    D7  A   C#m F#  E
+Paparupara, pararura, parara, Paparupara
+
+
+A   C#m D7M Dsus    D7  A
+Eu vejo a glória do Senhor hoje aqui
+    C#m D7M Dsus    D7
+A sua mão o seu poder sobre mim
+A   C#m D7M Dsus
+Os céus abertos hoje eu vou contemplar
+    F#7 C#m D7M Dsus    D7
+O amor descer neste lugar
+
+A   C#m D7M Dsus    D7
+Eu quero ver agora o seu poder
+A   C#m D7M Dsus    D7
+A sua glória inundando o meu ser
+A   C#m D7M
+Vou levantar as mãos e vou receber
+    F#7 C#m 
+Vou louvando o seu nome
+    D7M Dsus    D7  A
+Porque eu sinto o Senhor me tocar
+
+    A9  E/A A
+Recebi um novo coração do Pai
+    F#m C#m D   A
+Coração regenerado, coração transformado
+    Bm  G   Esus    E7
+Coração que é ensinado por Jesus    
+    A9  E/A A
+Como fruto deste novo coração
+    F#m C#m D   A
+Eu declaro a paz de Cristo, te abençoo meu irmão
+    Bm  Esus    E7
+Preciosa é a nossa comunhão
+
+
+    A9  E
+Somos corpo e assim bem ajustados
+    F#m D   Bm  E
+Totalmente ligados, unidos, vivendo em amor
+    A   E
+Uma família vencendo a falsidade
+    F#m D   Bm  E
+Vivendo a verdade, expressando a glória do Senhor
+    A   E
+Uma família vivendo o compromisso
+    F#m
+Do grande amor de Cristo
+
+
+    D7M Bm  E   A
+Eu preciso de ti, querido irmão
+    D7M Bm  E   A
+Precioso és para mim, querido irmão
+
+
+
+
+
+                   ******* 
+
+
+
+
+E   E/G#    A9  B
+E o verbo virou gente e habitou entre nós
+E   E/G#    A9  B
+Cheio de graça e de verdade
+A9  E/G#    F#m Bb7 E
+E vimos sua glória, como a do Pai
+A9  E/G#    F#m Bb7 E
+E vimos sua glória, glória do Pai
+
+A9          
+Faz-me conhecer Teu coração
+F#m7        Esus    E7
+Ensina-me a ouvir a Tua voz
+F#m7    D7M
+Revela-me Teus planos
+F#m7    D7M     Bm7 Esus    E7
+E mostra teus caminhos, quero mais!
+
+A9  
+Vem derrama em mim o Teu amor
+F#m7        Esus    E7
+Toca-me com Tuas mãos Senhor
+F#m7    D7M
+Quero Tua presença
+F#m7    D7M Bm7 Esus    E7
+Mais da tua glória, manifesta-te Senhor
+
+F#m7    D   E   F#m7         D  E
+Jesus, estou aqui, vem me tocar
+F#m7        D   E   F#m7        D   E
+Jesus, estou aqui, eu quero mais!
+
+
+
+
+
+
+*******
+
+
+
+
+E   A9  B   C#m7
+Há uma unção, já posso sentir
+    A   B/A E
+Verdadeiramente, Deus está aqui
+
+    A   G#  C#m
+Eu prefiro estar na Tua casa, ó Senhor
+    G#m A
+Onde flui um rio de amor
+    B/A E   A/E E
+Onde flui a benção do Senhor
+    A   G#m C#m
+Eu prefiro estar no meio da congregação
+    G#m A
+E no meio desta comunhão 
+
+    B7
+Servindo ao meu Deus
+    E   G#m A
+E aos meus irmãos, aha, aha
+    B7  E   G#m A
+Como é bom viver em união, aha, aha
+    B   E
+Como és precioso meu irmão 
+
+    G   G/F#
+Ó Deus, tu és o meu Deus forte
+    Em  Em/D
+A minha fortaleza
+    C   Am  Dsus    D7
+A minha alma tem sede de ti, Senhor
+    G   G/F#    Em  Em/D
+Com júbilo nos lábios te louvo, ó meu Rei
+    C   Am  Dsus    D7
+Debaixo de tuas asas encontro abrigo.
+C   D   G   Em  C
+Te louvo e te bendigo porque és bendito, ó Senhor
+    D   Em
+Glórias ao Deus eterno
+C   D   G   Em  C
+Te louvo e te bendigo porque és comigo, ó Senhor
+    D   Em
+Glórias ao Deus eterno
+C   D   G   Em
+Te louvo e te bendigo porque sempre és comigo
+    C   D   G   G/F#
+Ó Senhor, glórias ao Deus eterno
+
+
+    Em  C   Am
+Eterno, ao Deus eterno
+Dsus    D7  G
+Glórias ao Deus eterno
+
+                   *******
+
+    F9
+Dos montes correm para o mar,
+Gm
+Teu rio de amor por mim
+Bb  C9
+Eu abrirei meu coração,
+    
+Deixando sua cura entrar
+F9
+Me alegro por te pertencer,
+Gm
+Levantarei as minhas mãos,
+Bb  C9
+O teu amor me alcança e me faz louvar-te...
+
+F9  Gm
+Cantarei teu amor para sempre
+Bb  C9
+Cantarei teu amor para sempre
+
+Gm  F/A
+Meu coração exulta,
+Bb  C
+E com alegria eu canto,
+Gm  F/A
+Se o mundo conhecer a ti,
+Bb  C
+Ele se encherá com a sua alegria
+
+G9  G7  C7M
+Adorai em majestade
+    G   Em7 C   D7
+Toda a glória seja dada a Cristo Jesus
+G9  G7  C7M Am7
+Adorai em santidade
+    G   Em7 Am7 D7  G   C   G
+Vinde, louvai e vos prostrai ao pé da cruz
+    D   D7  G   Em
+Exaltai, bem alto erguei de Cristo o nome
+    D   D7  G   D
+Adorai, glorificai, Jesus Cristo, o Rei
+G9  G7  C7M Am7
+Adorai em majestade
+    G   Em  Am  Dsus    D7  G   C   G
+Ele morreu, ele venceu, é o Rei dos Reis
+
+
+
+
+                   ******* 
+
+
+
+    E9  A   E9  A
+Louvai ao Senhor, vós todas as nações
+    E   B7  A   E/G#    A/F#    E   A/B
+Louvai-o, todos os povos
+
+
+G#m C#m G#m C#m G#m
+Porque mui grande é sua misericórdia
+    C#m C#m/B
+Para conosco
+    A   E   B7  C#m
+E a fidelidade do Senhor subsiste para sempre
+    A   E   B7  C#m A   E   B7  C#m7
+Aleluia, aleluia, aleluia, aleluia
+
+    A   C#m
+Jesus Cristo mudou meu viver
+    D   Dm
+Jesus Cristo mudou meu viver
+    A   C#m F#m
+É a luz que ilumina meu ser
+    Bm  Esus    E7  A   Esus    E7
+Sim, Jesus Cristo mudou meu viver
+
+
+    A   C#m
+Diferente hoje é meu coração
+    D   Dm
+Diferente hoje é meu coração
+    A   C#m F#m
+Cristo deu-me paz e perdão
+    Bm  Esus    E7  A   A7
+Sim, diferente hoje é meu coração
+
+
+D   Dm
+O amor só conheci em canções
+    A   C#m F#m
+Que falavam de ilusões
+    Bsus    B7
+Tudo agora é diferente
+    Bsus    B7
+Isso falo a toda a gente
+    Dm  Esus    E7
+Pois Cristo deu-me seu amor
+
+
+
+
+
+                   ******* 
+
+
+
+
+F9  F/A Bb
+Ele é exaltado, o Rei é exaltado nos céus
+    Gm7 C7  F9
+Eu louvarei ! Ele é exaltado
+    F/A Bb  C/Bb    Bb  C/Bb    D   D7  
+Pra sempre exaltado, seu nome louvarei
+Gm7 C/E
+Cristo é o Senhor
+    F/A Bb  F/A
+Sua verdade vai sempre reinar
+Gm7 C/E
+Terra e céus
+    F9  F/A Bb  F/A
+Glorifiquem seu santo nome
+Bb/G    F/A Bb  C   F9  C/D D/F#
+Ele é exaltado, o Rei exaltado nos céus
+
+    A9  C#m
+Aleluia, Cristo vivo está
+F#m7
+Alcançou vitória
+    F#
+Sobre a morte triunfou
+Bm7
+Vive para sempre
+    F#m7    Bm7 Esus    E7
+Cristo vive, ele vive
+    A9
+Ele é o Alfa e o Ômega
+    C#m
+Princípio e o fim
+    F#m
+A morte foi vencida
+    F#  F#7
+Liberdade tenho enfim
+    Bm
+Jesus ressuscitou
+
+    D7M Bm  Esus    E7
+Cristo vive, ele vive
+
+
+    F#m F#m/E
+Cristo vive, ele vive
+    D7M Esus    E7  A9
+Aleluia, Cristo vivo está
+F#m D7M Esus    E7  A9
+Aleluia, Cristo vivo está
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+A   D/A E/A D/A A   D/A E/A
+Deus, supremo és,   soberano em glória
+D7M E/D C#m F#m B7  E7
+És incomparável em tua majestade
+D7M E/D C#m F#m B7  E7
+És incomparável em tua formosura
+
+
+A   Asus    A7  D   E/D A
+Não há outro Deus como Jeová
+A   Asus    A7  D   E/D A
+Não há outro Deus além do Senhor
+    A7  D/F#    D/E A
+Não há no céu, não há na terra
+    A7  D   D/E A
+Não há no mar, Deus como o Senhor
+
+    E   A9  B/A E
+O teu amor se estende além do céu
+    A   F#  Bsus    B7
+Constantemente mostras que és fiel
+    A   B/A G#m C#m 
+Tua justiça é majestosa como os montes
+    G#m C#m Bsus    
+Sabedoria mais profunda que o mar
+    B7  E
+Mas vens comigo estar
+
+
+E   A9  B/A E
+O teu amor me enche o coração
+    A   F#  Bsus    B7
+Encontro paz à sombra do teu perdão
+    A   B/A G#m C#m
+Tenho alegria na abundância da tua graça
+    G#m C#m Bsus
+Do teu rio de água viva beberei
+B7  E
+Tu és meu rei
+
+
+
+
+
+                   ******* 
+
+
+
+
+D7M A9
+Tudo o que Jesus conquistou na cruz
+    G   Asus    A7
+É direito nosso, é nossa herança
+    D   A
+E todas as bênçãos de Deus pra nós
+    G   Asus    A7
+Tomamos posse, é nossa herança
+
+
+Bm7 F#m7
+Toda a vida, todo o poder
+G   Asus    A7
+Tudo o que Deus tem para dar
+    Bm7 F#m7
+Abrimos nossas vidas pra receber
+G   Asus    A7
+Nada mais nos resistirá
+
+
+    D7M A/D
+Maior é quem está em nós
+    G   Asus    A7  D7M
+Do que aquele que está no mundo
+
+    G9  C7M D/C G9  D/F#
+Tu és a fonte de vida, o centro de todas as coisas
+    Em7 Am7 D   G9
+Em ti eu encontro guarida contigo eu sou vencedor 
+    G9  C7M
+Tu és, da alegria, a certeza
+    B7  Em7
+O amor que toma meu ser
+    C7M G/B Am7 Dsus    D7
+A verdadeira riqueza que sustenta o meu viver
+
+
+    C7M D/C G
+Tu és Jesus, amigo verdadeiro
+    G7  C7M D/C G
+Que tenho conhecido na vida de meus irmãos
+G7  C7M B7  Em7
+Tu és Jesus, eterno companheiro
+    G7  C7M D/C G9
+O filho do Deus vivo, o Deus Emanuel
+
+
+    G9  C7M D/C G9  D/F#
+Tu és a mão estendida, o cajado que traz direção
+    Em7 Am7 D   G9
+O pão que é repartido na vida de comunhão
+    G9  C7M B7  Em7
+Tu és a plenitude do Espírito que habita em mim
+    C7M G/B
+Em ti está toda a virtude
+    Am7 Dsus    D7
+Da glória e da graça sem fim
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+A   Bm7 E/G#    E   D   A
+Ao nosso Deus que se assenta no trono
+F#m Bm7 A   E   A   D/E
+E ao Cordeiro pertence a salvação
+    A7
+
+    D   E/D C#7 F#m
+E o louvor e a glória e a sabedoria
+D   Esus    E7  A   G/A A7
+E as ações de graça e a honra
+    D   E/D C#7 F#m
+E o poder e a força sejam ao nosso Deus
+    D   Bm  Esus    E7  D   A
+Pelos séculos dos séculos, amém
+
+    E   E7  A   F#m7
+Que consolação tem meu coração
+E   C#m7    F#  B7
+Descansando no poder de Deus
+E   E7  A   F#m7
+Ele tem prazer em me socorrer
+E   C#m7    F#  B7  E   A/B
+Descansando no poder de Deus
+
+
+E   E7  A   F#m7
+Descansando!
+E   C#m F#  B7
+Nos eternos braços do meu Deus
+E   E7  A   F#m7
+Vou seguro
+E   C#m F#  B7  E   A/B
+Descansando no poder de Deus
+
+
+E   E7  A   F#m7
+Não recearei, nada temerei
+E   C#m7    F#  B7
+Descansando no poder de Deus
+E   E7  A   F#m7
+Tenho paz e amor, junto ao meu Senhor
+E   C#m7    F#  B7  E   A/B
+Descansando no poder de Deus
+
+
+E   E7  A   F#m7
+Lutas sem cessar hei de atravessar
+E   C#m7    F#  B7
+Descansando no poder de Deus
+E   E7  A   F#m7
+Não me deixará mas me susterá
+E   C#m7    F#  B7  E   A/B
+Descansando no poder de Deus
+
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+    C7M G/B Am  Am7/G   Dm7 Dm7/C   Gsus    G7
+Ao que está sentado no trono e ao Cordeiro
+Dm7 G   C   E7  Am7
+Seja o louvor e a honra e a glória
+    F   Dm7 Gsus    G7  Gsus    G7  F   C
+E o domínio pelos séculos dos séculos, amém
+
+E   A/E B/E E
+Louvai a Deus no seu santuário
+C#m A   B7  E
+E no firmamento, obra do seu poder
+
+
+B   E/B B
+Louvai-o ao som da trombeta
+B   E/B B
+Louvai-o com saltérios e com harpa
+B   E/B B
+Louvai-o com adufes e danças
+B   E/B B
+Com instrumentos de cordas e com flautas
+
+
+E   A/E B/E E
+Louvai-o pelos seus poderosos feitos
+C#m A   B7  E
+Louvai-o consoante a sua muita grandeza
+
+
+B   E/B B
+Louvai-o com címbalos sonoros
+B   E/B B
+Louvai-o com címbalos retumbantes
+B                                E/B                   B                           
+Louvai-o ao som da trombeta
+B                               E/B B
+Com instrumentos de cordas e com flautas
+
+E   A/E B/E E
+Louvai-o pelos seus poderosos feitos
+C#m A   B7  E
+Louvai-o consoante a sua muita grandeza
+
+
+E   A   B7  E
+Todo o ser que respira, louve ao Senhor
+D   E   D   E
+Aleluia !  Aleluia !
+
+
+                    ******* 
+
+
+    Em  D
+Ressuscitou! Ressuscitou! 
+    C   Am  Bsus    B7
+Ressuscitou! Aleluia!
+
+    Em  D
+Ó morte, onde está, ó morte
+    C   Am  Bsus    B7
+A tua vitória, Jesus ressuscitou
+
+    Em  D
+Venceu a morte, venceu o mar
+    C   Am  Bsus    B7
+Venceu as trevas, e nos libertou
+
+    C7M Dm7
+Mantos e palmas espalhando vai
+    G7  C   F/G
+O povo alegre de Jerusalém
+C7M Dm7
+Lá bem ao longe se começa a ver
+    G7  C
+O Filho de Deus que montado vem
+
+
+    Am7 Em7
+Enquanto mil vozes ressoam por aí
+    F7M C7M
+Hosana ao que vem em nome do Senhor
+Am7 Em7
+Com um alento de grande exclamação
+    F7M Dm  Gsus    G7
+Cantamos com voz triunfal
+C7M Dm  G7  C   F/G
+Hosana ! Hosana ao Rei 
+C7M Dm  G7  C   F/G
+Hosana ! Hosana ao Rei
+
+
+C7M Dm7
+Como na estrada de Jerusalém
+    G7  C   F/G
+Agora também nós iremos cantar 
+C7M Dm7
+A Jesus Cristo que virá outra vez    
+    G7  C
+Para levar-nos ao eterno lar
+
+
+
+
+
+                   ******* 
+
+
+
+
+D7M G9
+Grande amor demonstrou na cruz
+    D7M Asus    A7
+Ao fazer-nos filhos de Deus
+D7M G9
+Grande amor demonstrou na cruz
+    D7M A   D
+Ao fazer-nos filhos de Deus
+
+
+D7M G   D7M A7
+Pra sermos chamados, filhos de Deus
+D7M G   D7M A   D
+Pra sermos chamados, filhos de Deus
+
+F   Bb  F
+Salve Cristo, tu és meu rei
+F   Bb  F
+Tua vida me faz cantar
+F   Bb  F
+Todo o dia te louvarei
+F   Bb  F
+És perfeito em teus caminhos
+F   Bb  F
+Salve Cristo meu Senhor
+F   Bb  F
+Tua Palavra obedecerei
+F   Bb  F
+Hei de ver o teu reino vir
+F   Bb  F
+Tua vontade se cumprir
+
+G   C   G
+Glória, glória ao Cordeiro de Deus
+G   C   G
+Que me leva à terra possuir
+G   C   G
+Em teu nome sempre vou vencer
+G   C   G
+Proclamar que tu és o Rei
+G   C   G
+Salve, salve Leão de Judá
+G   C   G
+Tão poderoso és
+G   C   G
+Salve, salve Leão de Judá
+G   C   G
+Maravilhoso és
+
+G   C   G   G   C   G
+Maravilhoso és, maravilhoso és
+
+    Dm  G7  Dm  Gsus    G7
+Eu te adoro, ó Deus, eu te adoro, ó Deus
+F   G/F Em  Am  F   G/F C7M
+Tu és o grande rei, meu redentor
+Dm  G   Em  Am  F   G   C7M
+Soberano criador, tu és meu Senhor
+
+
+Dm  G7  Dm  Gsus    G7
+Eu te exalto, ó Deus, eu te exalto, ó Deus   
+F   G/F Em  Am  F   G/F C7M
+Tu és o eterno Deus, meu Salvador
+Dm  G   Em  Am  F   G   C7M
+Meu rochedo, meu pastor, tu és meu Senhor
+
+
+Dm  G7  Dm  Gsus    G7
+Eu te amo, ó Deus, eu te amo, ó Deus
+F   G/F Em  Am  F   G/F C7M
+Tu és o Deus da paz, eterno pai
+Dm  G   Em  Am  F   G   C7M
+Bem presente em meu viver, tu és meu Senhor
+
+
+Dm  G7  Dm  G7  Em  A7  Em  Asus    A7
+Aleluia, aleluia, aleluia, aleluia  
+G   A/G F#m Bm  G   A/G D7M
+Tu és o grande rei, meu redentor
+Em  A   F#m Bm  G   A   D7M
+Soberano criador, tu és meu Senhor
+
+
+
+
+
+                   ******* 
+
+
+
+
+E   B7  A7  A/B E   D   A
+O amor sem Deus tão passageiro é
+    E   C#m F#m 7
+Mas o doce amor do meu Mestre
+    A   A/B E   D   A   E
+É algo que jamais morrerá
+    A/B
+
+
+    E   G#m7
+Não morrerá, não morrerá
+    F#m A/B E   A/B
+É algo que jamais morrerá
+
+
+    E   C#m7    F#m
+Sim, o doce amor do meu Mestre
+    A   A/B E   D   A   E
+É algo que jamais morrerá
+
+C9  G/B Bb7M
+Há de ter um lugar 
+    Asus    A7
+Onde o tempo há de parar
+Dm7 C9
+Onde a paz se faz real 
+    D7  F/G G7
+E o irreal amor não há, não
+
+
+C9  G/B Bb7M
+Sei que há, pois Deus o diz 
+    Asus    A7
+E eu não posso duvidar
+Dm7 C9
+Mesmo que não possa imaginar
+    D7  F/G G7
+Espero o dia, sim, espero
+
+
+C9  Em7 F   F/G Fº/G
+Aleluia ! aleluia ! No Céu eu vou morar
+C9  Em7 F   Dm7 Gsus    G7
+Aleluia ! Aleluia ! Pois Cristo vem me buscar
+
+
+C9  G/B Bb7M
+Há de ter um lugar 
+    Asus    A7
+Onde lágrimas não rolarão
+Dm7 C9
+Fracassados os dias maus 
+    D7  F/G G7
+Da vida em caos jamais verei, pois
+
+C9  G/B Bb7M
+No lugar, santo lugar
+    Asus    A7
+Onde o inimigo ausente estará
+Dm7 C9
+Face a face a Cristo verei
+    D7  F/G G7
+E muitos verão. Por isso eu canto
+
+    E   Bm7 E   Bm7
+Estamos juntos prontos para a adoração
+    E   Bm7 E   Bm7
+Que vem de dentro, vem do coração
+    A   G#m C#m C#m/B   
+Que traz alento, nova força pra viver
+    F#m B7  E   Bm7
+Que faz da alma o recanto da canção
+
+
+    E   Bm7 E   Bm7
+Estamos juntos prontos para a comunhão
+    E   Bm7 E   Bm7
+Que faz do amor uma celebração
+    A   G#m C#m C#m/B   
+Nosso louvor iremos todos dedicar
+    F#m B7  E   Bm7
+A Jesus Cristo nosso lampião
+
+
+    A   G#m C#m C#m/B
+Que trouxe luz em meio a escuridão
+    D   A
+Que fez da cruz prova maior do amor
+    B/A E/G#
+Trouxe amizade com o seu perdão
+    F#m G#m A   Bb  B7
+Viva esperança, fé e união
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+C7M Dm7
+Ao orarmos Senhor
+    G   C7M
+Vem encher-nos com teu amor
+    Am7 Dm7
+Para o mundo agitado esquecer
+    Gsus    G7  C   Bb/C
+Cada dia tua vida viver
+    F7M G   Em7
+Nossas vidas, vem pois, transformar
+    D7      Gsus    G7
+Refrigério pra alma nos dá
+    C7M Dm7
+E agora com estes irmãos
+    Gsus    G7  C   F/G
+Nos unimos aqui em oração
+    Bb/C
+
+    C7M F7M
+Quando olho tua santidade
+    C7M F7M
+Quando vejo tua formosura
+    C7M 
+Quando tudo se apaga
+    F7M Dm  Gsus    G7
+Devido ao teu resplendor
+    C7M F7M
+Quando encontro gozo no teu coração
+    C7M F7M
+Quando tua santidade reina em mim
+    C7M
+Quando tudo se apaga 
+    F7M Dm  Gsus    G7
+Devido ao teu resplendor
+
+
+    F7M G   Em  A7
+Adorarei, adorarei
+    Dm7 Gsus    G7  C   C7
+Eu vivo, Senhor pra te adorar
+
+
+
+                     ******* 
+
+
+D   G   A   D
+
+D9  A9
+Adoramos o Cordeiro
+D   A   F#/A#
+Adoramos o Rei dos reis
+Bm  E/G#    G
+Adoramos o Cordeiro
+    G/A D
+Adoramos o Rei.
+
+
+D   A
+Com nossas mãos levantadas 
+    G/A D
+Rendemos louvor
+    A
+Com nossas mãos levantadas
+    G/A D
+Nos regozijamos
+    D/F#    G   D/F#
+Com nossas mãos levantadas ao céu
+    F#/A#   Bm
+Nós dizemos ao mundo
+    G   A/G D
+Que amamos o nosso Rei
+
+
+    D/F#
+Ô, Ô, Ô ...
+    G   G/A D
+Nós amamos o nosso Rei
+
+    F   Bb  C   F   C/E Dm7
+Jesus, tu és um rio de vida
+    Bb  C   F
+Que corre do trono, do trono de Deus
+    F   Bb  C   F   Dm
+Jesus, tu és o que eras e o que há de vir
+    Gm  C   F
+E em ti todas as coisas vieram a existir
+
+A   Dm7 A   Dm7
+Pois tu nos amas e o teu sangue nos libertou
+Bb  F   Gm  Csus    C7
+E nos constituíste reino e sacerdote para Deus
+
+
+    Bb  C7  F   Bb  C7  F
+Jesus ! Jesus ! Jesus ! Jesus! 
+
+
+F7  Bb  C7  F
+Maravilhoso tu és, Jesus
+
+
+
+
+
+
+                   ******* 
+
+
+
+
+E7M G#m A9  Bsus    B7
+Tributamos honra e glória ao teu nome
+E7M G#m A9  Bsus    B7
+Pois tua graça derramaste sobre nós
+A9  B/A G#m C#m7
+No Espírito, selados para sempre
+F#m7    Bsus    B7  E   B/D#    C#m7
+Pertencemos ao Senhor
+F#m7    Bsus    B7  E   A/B
+Pertencemos ao Senhor
+
+
+    E   G#m A9  A/B B7
+O amor do nosso Senhor não termina
+    E   G#m A9  Bsus    B7
+E a cada dia ele vem renovar
+    A9  B/A G#m C#m7
+Suas misericórdias, misericórdias
+A9  Bsus    B7  E   B/D#    C#m7
+Como és fiel, Senhor Jesus
+F#m7    Bsus    B7  E   B/D#    C#m7
+Como és fiel, Senhor Jesus 
+F#m7    Bsus    B7  E
+Como és fiel, Senhor
+
+    D   F#m G   A   D
+Não há lugar melhor com tamanha paz
+    G   D   Em  A7
+Paz igual eu nunca encontrei jamais
+    Bm7 F#m Bm  Bm/A    G9
+É o lugar do meu prazer, onde todo o medo se vai
+    Em  Asus    A7  D   D7
+É o lugar do meu descanso, os braços do meu Pai
+
+
+    G   A/G D   D7
+Nos braços do meu Pai 
+    G   A/G Bm  Bm/A
+São os braços de Jesus
+    G   A/G
+Quando foram estendidos 
+G   A/G Bm  Bm/A    G9
+Eu fui recebido lá na cruz, lá na cruz
+    G   A/G Bm  G   A   D
+Nos braços do meu Pai, nos braços do meu Pai
+
+
+    D   F#m G   A   D
+Outrora eu era triste sem lugar pra onde ir
+    G   D
+Mas o Pai com seus braços de amor  
+    Em  A7
+Restaurou o meu sorrir
+    Bm7 F#m 
+Deu-me parte em sua herança
+    Bm  Bm/A    G9
+Vestimenta vinho e pão
+    Em  Asus    A7  D   D7
+Porque tinha um lugar pra mim no seu coração
+
+
+
+
+
+                   ******* 
+
+
+
+
+C9  G/B Am  F   C/E Dm7 Gsus    G7
+Vamos adorar a Deus, vamos adorar a Deus
+C9  G/B Am7 Fm  C   Gsus    G7  C   C7
+Vamos invocar seu nome, vamos adorar a Deus
+
+
+    F   G/F C   Am7
+Ele veio em minha vida num dia especial
+    Dm7 G   C   Bb/G    C7
+Trocou meu coração por um outro sem igual
+    F   G/F C   Ab
+E esta é a razão porque eu digo que
+C   Gsus    G7  C
+Vamos adorar a Deus
+
+    Gm  F   C   F
+Bendito seja Deus, nossa fortaleza
+    Gm  F   G   C
+Bendito seja Deus, nosso escudo
+A7  Dm  C   F
+Ele reina vitoriosamente
+    Gm  F   C   C#º
+Bendito seja o nome do Senhor
+    Gm  F   C   F
+Bendito seja o nome do Senhor
+
+    Gm  F   C   F
+Seu poder é semelhante ao grande mar
+    Gm  F   C   F
+Sua graça trouxe vida para mim
+    Gm  F   A   Dm
+E agora sou vitorioso
+    Eb  C
+Bendito o nome do Senhor
+
+
+    Gm  F   C   F
+O seu sangue livrou-me da escravidão
+    Gm  F   C   F
+Seu amor opera sua vida em mim
+    Gm  F   A   Dm
+E agora sou dele eternamente
+    Eb  C
+Bendito o nome do Senhor
+
+
+
+
+
+
+                   ******* 
+
+
+
+
+G9  D   C7M G9  Em7
+Cria em mim um coração puro, ó Deus
+    D   C7M
+E renova em mim um espírito reto
+
+
+    Am7 D   G   Em7
+E não me lances fora da tua presença, ó Deus
+Am7 D   G   G7
+Nem retires de mim o teu Espírito Santo
+Am7 D   G   Em
+Torna a dar-me a alegria da tua salvação
+Am7 D   C7M
+E renova em mim um espírito reto 
+Am7 D   C7M G9
+E renova em mim um espírito reto
+
+Intro:  E   C#m     
+
+E   A   E
+Bendirei ao Senhor em todo o tempo
+    C#m G#m
+Seu louvor nos meus lábios estará
+    A   G#m F#m G#m
+No Senhor a minha alma então se gloriará
+    A   D   E   C#m 
+Os humildes ouvirão e se alegrarão
+    E7
+
+    A   E
+O seu anjo se acampa ao meu redor
+    A   E
+De qualquer perigo sempre me vem guardar
+    D   A   E
+Ó, provai e vede que o Senhor é bom
+    D   A   E
+Temei a Deus, vós os seus santos, temei a Deus
+    D   A   E   C#m E
+Pois aos que o temem, bem algum lhes faltará
+
+
+
+
+                   ******* 
+
+
+
+
+
+    D9  G/D A/D D
+Jesus em tua presença reunimo-nos aqui
+    D/F#    G   A   D
+Contemplamos tua face e rendemo-nos a ti
+    Bm7 F#m7    G   A7  D   G/A
+Pois um dia tua morte trouxe vida a todos nós
+    D   E/D A7  D
+E nos deu completo acesso ao coração do Pai
+
+
+    Bm7 F#m Bm7 F#m Bm7 
+O véu que separava, já não separa mais
+    Bm7 F#m
+A luz que outrora apagava
+    G7M A/G Bm7 Bm/A
+Agora brilha e cada dia brilha mais
+G9  A7  Bm
+Só pra te adorar
+    G7M A7  Bm7 Bm/A
+E fazer teu nome grande
+G7M A/G Bm7 E/G#
+E te dar o louvor que é devido
+    D/F#    A7  D   E/D Gm/D    D
+Estamos nós aqui
+
+A9  F#m7    Bm7 E7
+Nas estrelas vejo a sua mão
+A9  F#m7    Bm7 E7
+E no vento ouço a sua voz
+A9  A7  D7M Bm7
+Deus domina sobre terra e mar
+Esus    E7  A
+O que ele é pra mim
+
+
+A9  F#m Bm7 E7
+Eu sei o sentido do natal
+A9  F#m7    Bm  E7
+Pois na história tem o seu lugar
+A9  A7  D7M Bm7
+Cristo veio para nos salvar
+Esus    E7  A   G/A A7
+O que ele é pra mim
+
+
+D7M 
+Até que um dia seu amor senti
+C#m7
+Sua imensa graça recebi
+Bm7 Bm/A
+Descobri então que Deus 
+    Esus    E7
+Não vive longe lá no Céu
+    Esus    E7
+Sem se importar comigo
+
+
+A9  F#m Bm7 E7
+Mas agora ao meu lado está
+A9  F#m Bm7 E7
+Cada dia sinto o seu cuidar
+A   A7  D   Bm7
+Ajudando-me a caminhar
+Esus    E7  A   F#m Bm7
+Tudo ele é pra mim
+    E7  A   F#m Bm7
+Tudo ele é pra mim
+    Esus    E7  A9
+Tudo  é Jesus pra mim
+
+D7M C/A D7  G9
+Em Jesus amigo temos
+D   Bm7 C9  A7
+Mais chegado que um irmão
+D7M C/A D7  G9  G#º
+Ele manda que levemos
+D   Em7 A7  D
+Tudo a Deus em oração
+Em7 Asus    A7  D   D7
+Ó, que paz perdemos sempre
+G7M D/F#    C9  A7
+Ó, que dor no coração
+D7M C/A D7  G9  G#º
+Só porque nós não levamos
+D/A Em7 A7  D9  G/A
+Tudo a Deus em oração
+
+
+D7M C/A D7  G9
+Temos lutas e pesares
+D   Bm7 C9  A7
+Enfrentamos tentações
+D7M C/A D7  G9  G#º
+Mas conforto recebemos
+D   Em7 A7  D
+Indo a Cristo em oração
+Em7 Asus    A7  D   D7
+Haverá um outro amigo
+G7M D/F#    C9  A7
+De tão grande compaixão
+D7M C/A D7  G9  G#º
+Aos contritos, Jesus Cristo
+D/A Em7 A7  D9  G/A
+Sempre atende em oração
+
+
+D7M C/A D7  G9
+E se nós desfalecemos
+D   Bm7 C9  A7
+Cristo estende-nos a mão
+D7M C/A D7  G9  G#º
+Pois é sempre a nossa força
+D   Em7 A7  D
+E refúgio em oração
+Em7 Asus    A7  D   D7
+Se este mundo nos despreza
+G7M D/F#    C9  A7
+Cristo dá consolação
+D7M C/A D7  G9  G#º
+Em seus braços nos acolhe
+D/A Em7 A7  D9  G/A
+E ouve a nossa oração
+
+    D7M G/D
+Rei dos Reis aqui estou
+A9  D   F#m7
+Rendo a ti o meu louvor e adoração
+    Bm7
+Pois tu és Deus 
+    G9  Asus    A7
+Acima dos céus, acima de nós
+F   Bb
+O universo se formou 
+C9  
+Com a tua voz 
+    F   Am  Dm
+O mundo inteiro veio a existir
+    Gsus    G7  Asus    A7
+Verbo de Deus, princípio e fim
+
+
+    D   A/D G/D D
+E eu te louvarei Senhor
+    F#m Bm  Asus    A7
+Levantando a ti minhas mãos
+    D   A/D G/D D
+Com canções de amor  te exaltarei
+    F#m Bm  Asus    A7
+Ministrando com meu coração
+    Em  Asus
+Para sempre te adorarei 
+    Em  Asus    A7  D
+Para sempre te adorarei
+
+
+    F   G/F
+Nada pode calar,  nada pode deter 
+    Asus    A7
+Minha consagração
+
+
+
+
+
+                   ******* 
+
+
+
+
+Gm  C   Gm  C   C7
+Louvemos ao Senhor, louvemos ao Senhor
+    F7M Am7 Dm7
+Adoremos no seu santo monte
+Dm/C    Gm  G7  Csus    C7
+Nosso amado Pai, seu nome é santo
+
+
+    F   Gm  C   F   Dm  Gm  C7
+Louvemos ao Senhor, pois seu nome é santo
+
+    G9  C   G   C/D
+Pai de amor, gosto tanto de ti!
+    G9  Em7 Dsus    D7
+Pai de amor, gosto tanto de ti!
+    G9  G7  C7M Cm7
+Te amo, te quero e prostrado te adoro
+    G9  D   C   G/B Am7 G   C/D
+Pai de amor, gosto tanto de ti
+
+    G9  C   G   C/D
+Meu Jesus, amoroso tu és!
+    G9  Em7 Dsus    D7
+Meu Jesus, amoroso tu és!
+    G9  G7  C7M Cm7
+Minha alma já limpaste, o Espírito enviaste
+    G9  D   C   G/B Am7 G   C/D
+Meu Jesus, amoroso tu és
+
+    G9  C   G   C/D
+Santo Espírito, Consolador!
+    G9  Em7 Dsus    D7
+Santo Espírito, Consolador!
+    G9  G7  C7M Cm7
+Tu nos santifica, em nós sempre habitas
+    G9  D   C   G/B Am7 G   C/D
+Santo Espírito, Consolador
+
+
+
+                   ******* 
+
+
+F   F7M Dm/F    F7M
+Grandes são as tuas obras
+    Dsus    D7  Gm  D7
+Senhor, todo poderoso
+Gm  F/A Bb
+Justos e verdadeiros são
+Bº  Csus    C7
+Os teus caminhos
+
+
+    F9  F7M
+Ó Rei das Nações, quem não temerá
+    Dsus    D7  Gm  D7
+Quem não glorificará teu nome
+    Gm  Gm7M    
+Ó Rei das Nações, quem não te louvará
+    Csus    C7  F   Bb/C
+Pois só teu nome é santo
+
+
+F   F7M Dm/F    F7M
+Todas as nações virão
+Dsus    D7  Gm  D7
+E adorarão diante de ti
+Gm  F/A Bb  
+Pois os teus atos de justiça 
+Bº  Csus    C7
+Se fizeram manifestos
+
+    C9  G/C F/C Gsus
+De todas as tribos, povos e raças
+C9  G/C F/C 
+Muitos virão te louvar
+    C   G/C F/C Gsus    
+De tantas culturas, línguas e nações
+    Dm7 Bb  F   Gsus    G7
+No tempo e no espaço virão te adorar
+
+
+    C   G/C F
+Bendito seja sempre o Cordeiro
+Am7 Am/G    F   G7
+Filho de Deus, Raiz de Davi
+    C   G/C F
+Bendito seja o seu santo nome
+Am7 Am/G    F   G7  C
+Cristo Jesus, presente aqui
+
+
+    C9  G/C F/C Gsus
+Remidos comprados, grande multidão
+C9  G/C F/C 
+Muitos virão te buscar
+C   G/C F/C Gsus    
+Povo escolhido, teu reino e nação
+    Dm7 Bb  F   Gsus    G7
+No tempo e no espaço virão te adorar
+
+
+    C9  G/C F/C Gsus
+E a nós só nos cabe tudo dedicar
+    C9  G/C F/C 
+Oferta suave ao Senhor
+C   G/C F/C Gsus    
+Dons e talentos queremos consagrar
+    Dm7 Bb  F   Gsus    G7
+E a vida no teu altar pra teu louvor
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+Em7 D   C   C/A B7
+Eu celebrarei, cantando ao Senhor
+    B/D#    Em  B7  Em
+E só nele me alegrarei
+
+
+    E7  Am
+Eu o louvo e o adoro
+D/F#    B7  Em  B7  Em7
+Porque tem triunfado
+
+G9  Am  D7  C/G G9
+Tu que estás assentado no trono
+    A7  Am7 D7
+Sempre reinando, soberano
+G9  Am7 D7  C/G G9
+Anjos cantando, homens louvando
+    A7  Am7 D7
+Deus reunido com seu povo
+
+    G9  B7  Em7 Gsus    G7
+Ho, Alfa, Ômega, Cristo, Filho
+    C   A7  G/D Em  Am  D7  Gsus    G7
+Ó vem, ó vem, ó vem Senhor Jesus
+
+
+G9  Am  D7  C/G G9
+Ansioso espero a tua volta
+    A7  Am7 D7
+O grande dia em que tu virás
+G9  Am7 D7  C/G G9
+Então subiremos, contigo estaremos
+    A7  Am7 D7
+Pra todo sempre, aleluia
+
+
+    G9  B7  Em  Gsus    G7
+Maranata, Cristo, Filho, Mestre
+    C   A7  G/D Em  Am  D7  Gsus    G9
+Ó vem, ó vem, ó vem Senhor Jesus
+
+
+
+
+
+                    ******* 
+
+
+
+
+D   D7M D6  D7M D   D7M D6  
+Cristo, nome glorioso
+D7M Em  Asus    A7  Em7 Asus
+Precioso Salvador, grande Senhor
+    D   D7M D6  D7M D   D7M D6  
+Emanuel, Deus conosco
+D7M Em  Asus    A7  Am  C/D
+Palavra viva, meu Redentor
+
+
+D7  G   A/G F#m Bm7
+Príncipe de paz e conselheiro
+    Em  Asus    A7  Am  C/D
+Deus poderoso, Pai eterno
+D7  G9  A/G F#m Bm7
+O seu governo ele vai sustentar
+    Em  Asus    A7  Bb7M    C7M D7M
+E o seu reino não terminará
+
+    E   C#m F#m7    B7
+Peregrinando vou pelos montes
+    E   C#m D   Bsus    
+E pelos vales sempre na luz
+B7  E   C#m F#m7    B7
+Cristo promete nunca deixar-me
+    E   C#m B7  E   E7
+“Eis me convosco” disse Jesus
+
+
+    A7M B7  G#m C#m
+Brilho celeste, brilho celeste
+    G#m C#m F#  B7
+Enche a minha alma, a glória do Céu
+    E   C#m F#m B7
+Com alegria sigo cantando
+    E   F#m7    B7  E   A/B
+Canto louvores indo pro Céu
+
+
+    E   C#m F#m7    B7
+Vão me guiando raios benditos
+    E   C#m D   Bsus    
+Que me conduzem para a mansão
+B7  E   C#m F#m7    B7
+Mais e mais perto o Mestre seguindo
+    E   C#m B7  E   E7
+Canto louvores da salvação
+
+
+
+
+
+                     ******* 
+
+
+
+
+    F   Bb/F    F   Dm7
+Há momentos em que as palavras não resolvem
+    Gm
+Mas o gesto de Jesus na cruz
+Csus    C7  F   C7
+Demonstra amor por nós
+    F7
+
+    Bb  C/Bb    Am7
+Foi no calvário que ele sem falar
+Dm  Gm7 Csus    C7  F   F7
+Mostrou ao mundo inteiro o que é amar
+    Bb/C
+
+    F   Bb/F    F   Dm7
+Aqui no mundo as desilusões são tantas
+    Gm
+Mas existe uma esperança
+Csus    C7  F   C7
+É que Cristo vai voltar
+    F7
+
+
+C   C5+ C6  C7  Dm
+Excelso, sublime, eterno e digno de louvor
+    Dm5+    Dm6
+O grande Deus, que fez os céus
+    Gsus    G7
+E tudo o que há na terra.
+C   C5+ C6  C7  Dm
+Glorioso, divino, supremo e tem todo o poder
+    Dm5+    Dm6
+E a sua glória enche os céus
+    Gsus    G7  C   Bb/C    C7
+Diante dele as trevas caem.
+
+
+F   F5+ F6
+É Rei dos Reis eternamente
+    F7  Bb
+A sua força é a nossa força
+    Bbm F
+O seu amor e a sua graça
+    Dm  Csus    C7  F
+Ultrapassam a razão.
+
+
+
+
+                   ******* 
+
+
+
+
+    E7M D/E
+Já podemos entrar no santo dos santos
+    A   E   Bsus    B7
+E poder te adorar, Senhor
+    E7M D/E
+Pelo novo caminho que temos acesso
+    A   E   Bsus    B7
+Ao teu coração de amor
+
+
+A   B/A 
+Tu estás entronizado, 
+A   B
+Teu trono é cheio de glória
+A   B/A
+Tu reinas para sempre
+    F#m G#m Bsus    B7
+Deus todo poderoso, autor das nossas vidas
+
+
+E7M D/E A   B
+Santo, santo, santo, santo é o Senhor
+    E7M D/E
+Vestido de glória estás, vestido de glória
+A   Bsus    B7  E
+Santo, santo é o Senhor
+A   Bsus    B7  E
+Santo, santo é o Senhor
+
+Intro: C  Am  Dm  G
+
+    C7M F7M
+Vem e sopra sobre nós teu sopro
+Dm7 Gsus    G7
+Reunidos neste ajuntamento
+C7M F7M
+Honra e santifica este momento
+Dm  Gsus    G7
+Com a tua igreja que é teu povo
+
+
+C7M F7M
+Faz teu rio de paz correr no meio
+Dm7 Gsus    G7
+Destes que por fé vem bendizer-te
+C7M F7M
+E a uma voz oferecer-te
+Dm  Gsus    G7
+Seus louvores, súplicas e anseios
+
+
+F   G/F C   C7
+Tu és o Senhor de toda a glória
+F   G/F C   Bb/C    C7
+Hoje, sempre e como foste outrora
+F   G/F E   Am  Am/G
+No correr da história, revelando o seu amor
+Abº Dm  Gsus    G7
+Deus bendito, rei e salvador
+F   Gsus    G7  C   Bb/C    C7
+Deus bendito, rei e salvador
+
+
+
+
+                   ******* 
+
+
+
+
+Em  F#m7    Bm7 A/B
+Tu és a rocha da minha vida
+G7M A   Bm  
+És o meu rei, o meu Deus
+Em  F#m Bm  A/B
+Minha esperança, o meu refúgio
+G7M A9  Bm
+Sempre ao meu lado estará
+
+
+    G7M A/G F#m Bm
+Teu amor por mim não mudará
+    G7M A   Bm
+Tua mão me susterá
+    G7M A/G F#m Bm7
+Cada dia e em todo o meu viver
+Em  Em/G    F#7
+Junto a ti quero estar
+
+G9  Em  Am  C   D
+Pelo sangue de Jesus, novo e vivo caminho
+G9  Em  Am  C   D
+Confiante entrarei em tua santa presença
+Em  Bm  Em  Bm  Em  
+Diante do teu trono, diante do trono da graça
+C   Bm  Em  Am
+Face a face, diante de ti, meu pai
+    Dsus    D7
+Sempre estarei
+
+
+    C7M D/F#    Bm  Em
+Em tua presença, Senhor, em tua presença, Senhor
+    C   Em  Dsus    D7
+Há libertação, há restauração, em tua presença, Senhor
+    C7M D/F#    Bm  Em
+Em tua presença, Senhor, em tua presença, Senhor
+    C   Em
+Há cura, há paz. Há plena alegria
+    Dsus    G
+Em tua presença, Senhor
+
+
+    C7M D/F#    Bm  Em
+Em tua presença, Senhor, em tua presença, Senhor
+    C   Em  Dsus    D7
+Há renovação, há transformação, em tua presença, Senhor
+    C7M D/F#    Bm  Em
+Em tua presença, Senhor, em tua presença, Senhor
+    C   Em
+Há vida e amor, há graça e perdão
+    Dsus    G
+Em tua presença, Senhor
+
+
+    C7M D/F#    Bm  Em
+Em tua presença, Senhor, em tua presença, Senhor
+    C   Em  Dsus    D7
+Seguro estarei, jamais temerei, em tua presença, Senhor
+    C7M D/F#    Bm  Em
+Em tua presença, Senhor, em tua presença, Senhor
+    C7M Em
+Seguro estarei, jamais temerei
+    Dsus    D7  G
+Em tua presença, Senhor
+    C7M Em7
+Seguro estarei, jamais temerei
+    Dsus    D7  G
+Em tua presença, Senhor
+
+    A7M D7M E   A7M
+Grande é o Senhor e mui digno de louvor
+    D7M E   F#m
+Na cidade do nosso Deus, seu santo monte
+D7M C#m Bm  C#m D7M Esus    E7
+Alegria de toda a terra
+
+
+A7M D7M E   A7M
+Grande é o Senhor em quem nós temos a vitória
+    D7M E   F#m
+E que nos ajuda contra o inimigo
+    D7M C#m Bm  C#m D7M Esus    E7
+Por isso diante dele nos prostramos
+    A7M C#m
+Queremos o teu nome engrandecer
+D7M Bm  D7M Esus    E7
+E agradecer-te por tua obra em nossas vidas
+    A7M C#m
+Confiamos em teu infinito amor
+    D7M Bm
+Pois só tu és o Deus eterno
+D7M Esus    E7  A7M D/E
+Sobre toda a terra e céus
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+G9  Bm7 C7M D7  G9  Bm  C7M D7
+Enquanto eu calei o meu pecado
+G9  Bm  C7M D7  G9  Bm  C7M D7
+Envelheci, eu sei, de tão cansado
+
+
+C7M D/C G   B7  Em
+Porque a tua mão pesava sobre mim
+Am7 D/F#    G   Dm7 G7
+E o meu vigor chegou ao fim
+C7M D/C
+O meu pecado então
+    G   B7  Em
+Eu não mais ocultei
+Am  D7  G
+Do meu Senhor e Rei
+
+
+G9  Bm7 C7M D7  G9  Bm  C7M D7
+Assim eu confessei o meu pecado
+G9  Bm  C7M D7  G9  Bm  C7M D7
+E pelo sangue de Jesus eu fui lavado
+
+
+D9  Em  D/F#    G9
+Este é o meu corpo partido por ti
+D/F#    Bm  E7  Asus    A7
+Traz salvação e dá a paz
+Em  A7  F#m Bm7
+Toma e come e quando o fizer
+Em  A7  D9
+Faça em amor por mim
+
+
+D9  Em  D/F#    G9
+Este é o meu sangue vertido por ti
+D/F#    Bm  E7  Asus    A7
+Traz o perdão e a liberdade
+Em  A7  F#m Bm7
+Toma e bebe e quando o fizer
+Em  A7  D9
+Faça em amor por mim
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+    F7M C/E
+Minha vida eu consagro a ti
+Dm7 C/E
+Quero poder te servir
+    F7M C/E
+Dispõe deste teu servo, ó Deus
+Dm7 C/E
+Eu também quero ir
+
+
+    F   C   Dm
+E poder falar das tuas maravilhas
+    F   C   Dm
+E poder cantar das tuas maravilhas
+    F   C   Dm
+E poder sentir as tuas maravilhas
+    F   C   Dm
+E poder louvar
+
+
+    F7M C/E
+No teu caminho eu quero andar
+Dm7 C/E
+Quero ouvir teu falar
+    F7M C/E
+Como chuva que cai do céu, Senhor
+Dm7 C/E
+Unge os meus lábios, ó Deus
+
+    G9  Bm7 C7M D
+Quem nos separará do amor de Cristo
+    G9  Bm  C7M Dsus    D7
+Será tribulação, angústia ou perseguição
+G9  Bm  C7M D
+Fome ou nudez, perigo ou espada
+G9  Bm      
+Quem nos separará 
+C7M D
+Do amor de Cristo
+
+
+    G9  Bm7
+Pois eu estou bem certo
+    C7M D
+De que nem morte nem vida
+    G9  Bm
+Nem anjos nem principados 
+    C7M
+Nem coisas do presente 
+    D
+Nem do porvir
+    G   Bm7
+Nem poderes nem altura
+    C7M D
+Nem profundidade
+    G   Bm7
+Nem qualquer outra criatura
+C7M D   G9  Bm
+Poderá nos separar do amor de Deus
+    C7M D   G   Bm
+Que está em Jesus Cristo, nosso Senhor
+    C7M D
+Está em Jesus Cristo
+
+
+G9  Bm7 C7M Dsus    D7
+Nada, nada poderá nos separar
+G9  Bm7 C7M Dsus    D7
+Nada, nada poderá nos separar
+    G9  Bm  
+Do amor de Deus
+    C7M D7  G   Bm7
+Que está em Jesus Cristo, nosso Senhor
+    C7M Dsus    D7
+Que está em Jesus Cristo
+
+
+    D   G
+Vem desfrutar do amor de Deus
+    A   G   D
+Você e sua casa
+D   G
+Deixe Jesus que é o Rei entrar
+D   A   
+Em seu coração
+D   G
+Vida melhor ele quer te dar
+A   G   D
+Restaurar seu lar
+D   G   Asus    A7  D
+Paz e harmonia ele quer trazer pra você
+
+
+D   G
+Deus alcançou e modificou
+A   G   D
+Toda a minha casa
+    D   G
+Ainda que venha a tempestade
+D   A   
+Não nos abalará
+D   G
+Vida melhor ele quer te dar
+A   G   D
+Restaurar seu lar
+D   G   Asus    A7  D
+Paz e harmonia ele quer trazer pra você
+
+
+
+
+
+                         ******* 
+
+
+
+
+
+    D   A/D G/D
+Não existe nada melhor 
+    D   A/D G/D
+Do que ser amigo de Deus
+    Bm  Bm/A    G7M
+Caminhar seguro na luz 
+    Bm  F#m Bm
+Desfrutar do seu amor
+    Em  Em/D    Asus    A7
+Ter a paz no coração
+    Em  Em/D    Asus    A7
+Viver sempre em comunhão
+    D   A   Bm  G
+E assim perceber a grandeza e o poder
+    D   A   G   D
+De Jesus, meu bom pastor
+
+    E   G#m C#m Bm7 E   A
+Tu és meu Deus, graça sempre te renderei
+    B   E   A   Bsus    B7
+Senhor da minha vida, a que sempre adorarei
+    E   G#m C#m Bm7 E
+O Deus, cujo amor, me conquistou
+    A   E   A   Bsus    B7
+E por tudo isso é o meu prazer, Senhor te adorar
+
+
+A7M B7  G#m C#m
+É o meu prazer, Senhor te adorar
+    A7M B7
+Prostrado nos teus átrios
+    G#m C#m 
+No teu santo lugar
+    A7M B7
+Onde a glória é a tua presença
+    G#m C#m
+Tão grandiosa, tão imensa
+    A7M Bsus    B7  E
+Que inunda de alegria o meu ser
+
+
+    A7M B7  G#m C#m
+Sim, é o meu prazer, Senhor, te adorar
+    A7M B7  G#m C#m
+Pois sou teu filho e posso contigo sempre estar
+    A7M B7
+Desfrutando o teu cuidado
+    G#m C#m
+Sendo por ti sempre amado
+    A7M Bsus    B7  E
+Pois tens revelado a mim o teu amor
+
+
+
+
+
+                   ******* 
+
+
+
+
+    A9
+Aquele que tem 
+    E/A D/A Bm/E    E7
+Os meus mandamentos e os guarda  
+A   E/G#    D/F#    Bm/E    E7
+Esse é o que me ama
+    A9
+Aquele que tem 
+    E/G#    D/F#    Dm/F
+Os meus mandamentos e os guarda  
+A9  E7  A9
+Esse é o que me ama
+
+A7  D7M C#m
+E aquele que me ama será amado por meu Pai
+    C9  Bm7 Esus    E7
+E eu também o amarei e me manifestarei a ele
+Eb7M  Dm7  G7M / Eb7M  Dm7  Bb7M  /  Eb7M  Dm7  G7M  /  Eb7M  Dm7  C/D
+
+    G7M Bm7
+O meu Deus é maior que os meus problemas
+    C7M C/D
+Eu não temerei, com Jesus vou além
+    G7M Bm7
+Ainda que a figueira não floresça
+    C7M
+E não haja frutos na videira
+C/D B/D#    Em7 
+Eu não temerei,     não
+    
+
+Em      Bm/E
+Pois eu sei que para além das nuvens
+Bm/E        
+O sol não deixou de brilhar
+Em      G   D/F#
+Só porque a Terra escureceu
+Em7
+A minha vida está em Deus
+Bm/E    C7M
+Eu sei que tudo posso em Deus
+    C/D
+É Ele que me fortalece
+
+
+G7M     Bm7 C
+Eu vou seguir com fé, com meu Deus eu vou
+    C/D G
+Para a rocha mais alta que eu
+G7M     Bm7 C
+Eu sei pra onde eu vou, como águia vou
+    C/D G
+Nas alturas sou filho de Deus
+
+
+    G7M Bm7
+O meu Deus sabe tudo que eu preciso
+    C7M
+Pra sentir a paz
+C/D
+Dentro do meu coração
+    G7M Bm7
+Ainda que a lua adormeça
+    C
+E não haja brilho nas estrelas
+C/D B/D#    Em7
+Eu não temerei ,   não
+
+    E   A7M E   A7M
+Tu és meu respirar, meu novo e puro ar
+    G#m7    C#m G#m C#m
+Meu fôlego de vida, a vida que me inspira
+    F#m B
+E pulsa dentro em mim
+    G#m C#m G#m C#m
+A razão de eu existir, a força pra cantar
+    F#m Bsus    B7
+E em tudo isso ver
+
+
+    E   A   E   A
+Jesus, eu nada sou sem ti
+    E   A   E
+Jesus, eu amo tanto a ti
+
+
+    C#m B7
+Comigo sempre estás
+    G#m F#m A
+Seguro abrigo és leal amigo
+
+
+
+
+
+
+                   ******* 
+
+
+
+
+    Cm  G
+Antes mesmo que eu fosse alguém
+    Gm7 F
+Tu me amaste e me disseste vem
+    Fm  C   Am7
+Mesmo sendo tão rebelde e vão 
+    D   Gsus    G7
+Tu me amaste e me estendeste a mão
+
+
+    Cm  G
+Já me deste tanto amor e paz
+    Gm7 F
+Eu só te peço uma coisinha mais 
+    Fm  C   Am7
+Pra que eu possa cumprir a minha parte
+    Dm7 Gsus    G7  C
+Ensina-me, Senhor a amar-te
+Am  Dm7 Gsus    G7  C
+Ensina-me, Senhor a amar-te
+Am  Dm7 Gsus    G7  Cm
+Ensina-me, Senhor a amar-te
+
+    G   Bm7 
+Esta paz que eu sinto em minha alma
+C   Am7 Dsus    D7  
+Não é porque tudo me vai bem
+    G   Bm7 
+Esta paz que eu sinto em minha alma
+C   Am7 Dsus    D7  
+É porque eu amo ao meu Senhor
+
+
+G   Bm7
+Não olho circunstâncias, não, não, não
+    C
+Só olho o seu amor, seu grande amor
+    C   Dsus    D7
+Não me guio por vista, alegro estou
+
+
+    G   Bm7 
+Este gozo que eu sinto em minha alma
+C   Am7 Dsus    D7  
+Não é porque tudo me vai bem
+    G   Bm7 
+Este gozo que eu sinto em minha alma
+C   Am7 Dsus    D7  
+É porque eu louvo ao que é Fiel
+
+
+    G   Bm7 
+E ainda que os campos não floresçam
+C   Am7 Dsus    D7  
+E a vide não dê o seu fruto
+    G   Bm7 
+E ainda que os montes se lancem ao mar
+C   Am7 Dsus    D7  
+Ou que a terra trema eu hei de confiar
+
+G   G7M C7M
+Sim, eu sei, Senhor, que tu és soberano
+G   Bm7 C7M Bm
+Tens  os teus caminhos, tens teus próprios planos
+Em  Dm  G7  C   C#º
+Venho pois, a cada dia, venho cheio de alegria
+    G   A7  Dsus    D7
+E me coloco em tuas mão, pois és fiel
+
+
+G   G7M C7M
+Sim, eu sei, Senhor, que tu és poderoso
+G   Bm7 C7M Bm
+És um Deus tremendo, pai de amor, bondoso
+Em  Dm  G7  C   C#º
+Venho, pois a cada dia, venho cheio de alegria
+    G   Dsus    D7  G
+E me coloco em tuas mãos, pois és fiel
+
+
+    F#m B7  Em  Dm  G7
+Fiel é tua palavra, ó Senhor
+    C7M F#m B7  Em
+Perfeito teus caminhos, meu Senhor
+    D   C   G
+Pois sei em quem tenho crido
+    B7  C7M
+Também sei que é poderoso
+    Am7 Bm7 C7M
+Pra fazer infinitamente mais
+    Am7 Bm7 C7M
+Pra fazer infinitamente mais
+
+
+    C   D
+Do que tudo que pedimos
+    Em
+Infinitamente mais
+    C   D
+Do que tudo que sentimos
+    Em
+Infinitamente mais
+    C   D
+Do que tudo que pensamos
+    Em  
+Infinitamente mais
+    C   D
+Do que tudo que nós cremos
+    E   E7
+Infinitamente mais
+
+    G9  Bm7 C7M D
+Senhor, eu não sou nada diante do teu poder
+G9  Bm7 C7M D
+Nem merecedor do teu imenso amor
+    Em  D   Bm7 Em7
+Através do teu Filho eu tenho livre acesso a ti
+    C   Am7
+Que me fez chegar aos teus pés
+    Dsus    D7
+Me humilhar diante de ti
+
+
+Em  Bm7
+Deixa teu rio passar em minha vida
+    C   Am7 Dsus    D7
+E curar minhas feridas, sarar as minhas dores
+Em  Bm7 
+Livra-me, ó Deus das cadeias que me prendem
+C   Am7 Dsus    D7  
+Toca em minha alma, faz em mim o teu querer
+    G9
+Senhor.
+
+
+
+
+
+                   ******* 
+
+
+
+
+
+    G9  Bm7 C7M D   G9
+Espírito de Deus venha renovar o meu viver
+    Bm  C7M D
+E encher de nova vida todo o dia
+G   Bm  C7M D
+Quero ser a bênção que o Senhor agora
+G   Bm  C7M D   G   Bm7 C7M D
+Faz me ver as tuas maravilhas com amor
+
+
+    G   Bm
+Vivifica-me, renova-me
+C7M D   G   Bm7
+Vem fortalecer o meu viver
+    C7M D
+Aumenta a minha fé
+    G   Bm  C7M D
+Que eu possa crer e ver
+    G   Bm  C   D
+Maravilhas
+    G   Bm  C   D
+Maravilhas
+
+    E   A   D   E
+Somos filhos da graça divina e sem par
+E   A   D   E
+Frutos do amor que nos veio alcançar
+C#m F#m D   A
+Graça que livra da morte e pecado
+    D   A   B   E
+E por ela nós somos reconciliados
+    D   A   Bm7 E   A
+E por ela nós somos reconciliados
+
+E   A   E   A   D   A   E   F#m
+Graça, graça, super abundante graça
+D   A   E   A
+Super abundante graça
+C#m F#m E   A   D   A   E   F#m
+Graça, graça, super abundante graça
+D   A   E   A
+Super abundante graça
+
+    E   A   D   E
+Somos filhos da graça de Cristo Jesus
+E   A   D   E
+Tirado das trevas pro reino da luz
+    C#m F#m D   A
+E assim somos santos, justificados
+    D   A   B   E
+E um dia seremos glorificados
+    D   A   Bm7 E   A
+E um dia seremos glorificados
+
+
+                   ******* 
+
+
+C7M Am7 F   G
+Como é precioso irmão estar bem junto a ti
+    C7M Am7 F   G
+E juntos lado a lado andarmos com Jesus
+    Am7 Em  F   G   C
+E expressarmos o amor que um dia ele nos deu
+    Am7 Dm  F   G   C
+Pelo sangue do calvário, sua vida trouxe a nós
+
+
+    Am7 Em  F   G   C
+Aliança no Senhor eu tenho com você
+    Am  D7  Gsus    G7
+Não existem mais barreiras em meu ser
+    Am  Em  F   F#º
+Eu sou livre pra te amar, pra te aceitar
+    C   Dm  Gsus    G7
+E para te pedir perdoa-me irmão
+
+    F   G/F C   F
+Eu sou um com você no amor do nosso Pai
+    C   G   C   C7
+Somos um no amor de Jesus
+
+    A9  F#m7    D7M
+Senhor, estou aqui para te adorar
+    Bm7 E
+Em tua presença desejo estar
+    C#m D7M F#m
+Eu sei que nada sou, mas vim me humilhar
+    F#m/E   D7M Bm7 Esus    E7
+Preciso de ti, vem me restaurar
+
+
+    A9  F#m7
+Eu quero ser como um jardim fechado
+    Bm  Esus    E7
+Regado e cuidado pelo teu Espírito
+    D   E   F#m
+Flua em mim como um manancial
+    F#m/E   Bm  C#m D7M
+Do meu interior como águas vivas
+
+    Esus    E7  A
+Restaura o meu ser para o teu louvor
+
+
+
+
+
+                   *******
+
+
+
+
+    A               C#m                 
+Eu vivo para o Teu louvor
+    Bm  Esus    E
+Para Ti Senhor, eu vivo pra Tua glória
+    A   C#m
+Eu vivo pra Ti adorar 
+    Bm  Esus    E
+Só pra Te exaltar, eu vivo pra Tua glória
+    F#m C#m
+Eu vivo pra Te dar a honra 
+    D   E   A
+E com meus lábios te dizer
+    Bm  C#  C#7 F#m B   
+Eu te  a - a- amo  Jesus
+    D   E   A   E
+Eu te amo Jesus
+    A   E   F#m E
+Jesus te amo, mas tu me amaste primeiro
+    A   C#m F#m F#m/E
+Amor tão puro santo e verdadeiro
+    D   E   F#m A   D
+Vertido por mim na cruz
+    Bm  E   A   E
+Eu te amo Jesus 
+    F#m
+
+A9  E
+Meu Jesus, Salvador
+F#m E   D7M
+Outro igual não há
+    A/C#    D7M A/E
+Todos os dias quero louvar
+    F#m G   D/F#    Esus    E7
+As maravilhas do teu amor
+
+
+A9  E
+Consolo, abrigo
+F#m E   D7M
+Força e refúgio é o Senhor
+    A/C#    D7M A/E
+Com todo o meu ser, com tudo o que sou
+F#m G   D/F#    Esus    E7
+Sempre te adorarei
+
+
+    A9  F#m D7M E
+Aclame ao Senhor toda a terra e cantemos
+    A9  F#m7    D7M E
+Poder, majestade e louvores ao Rei
+    F#m C#m/E   D   
+Montanhas se prostrem e rujam os mares
+    E   D/F#    E
+Ao som de teu nome
+    A9  F#m7    D7M E
+Alegre te louvo por teus grandes feitos
+    A9  F#m7    D7M E
+Firmado estarei, sempre te amarei
+F#m7    C#m/E   D7M E
+Incomparáveis são tuas promessas
+
+
+F#m7    C#m/E   D7M E
+Incomparáveis são tuas promessas
+
+
+    A9
+Pra mim
+
+    G9  D   C7M
+Buscar-me-eis e me achareis
+    G
+Quando me buscardes de todo o coração
+    D   C7M
+Buscar-me-eis e me achareis
+
+
+G   Bm  C7M
+Ao cansado, ao cheio de alegria
+
+Em todo o tempo, de noite e de dia
+G   Bm  C7M Am7
+Ouça a voz daquele que cuida dos seus
+
+
+G   Bm  C7M
+É para todos, do fraco ao mais forte
+
+Em toda a terra, do sul até o norte
+G   Bm  C7M Am7
+Esta é a regra pra quem quer chegar-se a Deus
+
+
+
+Buscar-me-eis e me achareis
+
+
+G   Bm  C7M
+O satisfeito, também o que tem fome
+
+Quer seja rico ou dono só do nome
+G   Bm  C7M Am7
+Venha e traga sua vida perante o Senhor
+
+
+G   Bm  C7M
+Que venham muitos, crianças e adultos
+
+Pouco importa se caretas ou malucos
+G   Bm  C7M Am7
+Procurem-no logo e se encherão de amor 
+
+    F   Bb/F
+No nome forte de Jesus 
+    F   Dm7 Gm  C
+Nos reunimos aquecidos por sua luz
+    Dm7 Bb7M    Gm
+Por meio do Senhor, unidos neste amor
+    Bb  Csus    C7  F   Bb/C
+Com vinho e pão nós celebramos comunhão
+
+
+C   F
+Não me sinto estranho aqui
+Bb  F
+Este é o meu lugar
+Bb  C/Bb    Am  Dm
+No perdão que tenho em ti
+    Gsus    G7  C7
+Aprendo a perdoar
+
+
+    F   Bb/F
+Quem serve o vinho e parte o pão
+    F   Dm7 Gm  C
+É o próprio Cristo, Ressurreto e nosso irmão
+    Dm7 Bb7M    Gm
+O rei da terra e céu é nosso anfitrião
+    Bb  Csus    C7  F   
+Com vinho e pão nós celebramos comunhão
+
+
+C   F
+Entre o povo do Senhor
+Bb  F
+Verdadeiro lar
+Bb  C/Bb    Am  Dm
+Cristo está presente aqui
+Gsus    G7  C7  D7
+Neste celebrar
+
+
+    G   C/G 
+E logo vamos nos reunir
+    G   Em7 Dsus    D7
+No grande encontro preparado e que há de vir
+    Em  C7M Am
+Na glória do Senhor em todo esplendor
+    C7M Dsus    D7  Em7 Em/D
+Com vinho e pão nós celebramos comunhão
+    C7M Dsus    D7  G9
+Com vinho e pão nós celebramos comunhão
+
+
+    F9  Bb/F
+Tu és digno de todo o louvor, Senhor
+    Gm7 Am  Bb  Csus    C7
+Em tua presença pra sempre eu quero estar
+    Am7 Bb7M
+O meu coração deseja
+    Am7 Bb7M
+De todo se entregar
+    Gm  Am  Bb7M    Csus    C7
+A ti somente eu quero adorar
+
+
+    Bb7M    Am7 Dm7 Dm/C
+Quão grande és tu ! Quão grande és tu !
+    Bb7M    Am7
+És o poderoso Deus
+    Bb7M    Csus    C7
+Mas vieste em mim reinar
+    Bb7M    Am7 Dm7 Dm/C
+Quão grande és tu ! Quão grande és tu !
+Gm  Am7 Bb  Csus    C7  F9
+Tudo o que há em mim quer te louvar
+
+
+
+
+
+                   *******
+
+
+
+
+    F   Bb
+Só de ouvir tua voz e sentir teu amor
+    Dm7 Dm/C    Bb7M
+Só de pronunciar o teu nome
+    Gm  C
+Os meus medos se vão
+    Am7 Dm7
+Minha dor meu sofrer
+    Gsus    G7  Csus    C7
+Pois de paz tu inundas meu ser
+
+
+    F   Bb
+Jesus ! que doce nome
+    Gm7 C
+Que transforma em alegria
+    F   Csus    C7
+O meu triste coração
+    F   Bb
+Jesus ! Só o teu nome
+    Gm  Csus    C7  F
+É capaz de dar ao homem, salvação
+    (Transição opcional  p/ 106B:  D7)
+
+
+
+    G9  C/G
+Cada vez que minha fé é provada
+    Am  D   G9
+Tu me dás a chance de crescer um pouco mais
+    Em  
+As montanhas e vales
+    Bm
+Desertos e mares
+    C   Am  Dsus    D
+Que atravesso me levam pra perto de ti
+
+    G9
+Minhas provações não são maiores
+C/G 
+Que o meu Deus
+    Am  D   G9
+E não vão me impedir de caminhar
+    Am  D   B7  Em
+Se diante de mim não se abrir o mar
+    C7M D/C G9
+Deus vai me fazer andar por sobre as águas 
+
+D   G   Bm
+Rompendo em fé !
+    C7M D   G
+Minha vida se revestirá do teu poder
+D   G   C
+Rompendo em fé !
+    Am  D   Em  Em/D
+A cada dia vou mover no sobrenatural
+
+    C7M G
+Vou lutar e vencer !
+    C7M Em7
+Vou plantar e colher !
+    C7M D   G
+A cada dia vou viver, rompendo em fé
+    C7M D   G
+A cada dia vou viver, rompendo em fé 
+
+*******
+
+    G9  Em7 C7M Dsus    D7
+O nome de Jesus é poderoso
+    G9  Em7 C7M D
+O nome de Jesus é sobre todos
+C7M G9  C7M G9
+Nome mais doce, nome mais lindo
+C   G9  Am7 Dsus    D7
+Nome sublime é o nome de Jesus
+
+
+    G9  Em7 C7M Dsus    D7
+O nome de Jesus levanta os mortos
+    G9  Em7 C7M D
+O nome de Jesus sara os feridos
+C7M G9  C7M G9
+Nome mais santo, nome mais puro
+C   G9  Dsus    D7  G   C/D
+Nome bendito é o nome de Jesus
+
+    E   A   B
+Cristo, tu és meu refúgio
+E   A   B
+Em quem posso confiar
+C#m A   G#m
+Cristo, tu és meu refúgio
+A   E   B   C#m
+Coloco a minha confiança em ti
+A   E   B   E
+Coloco a minha confiança em ti
+
+
+E
+Tua palavra é  ( Tua palavra é )
+A   E   A   E
+Vida e poder  ( Vida e poder )
+A   B   C#m
+Para me libertar
+A   E   A   B
+Nisto eu creio, sim eu creio
+
+
+E
+Tenho esperança  ( Tenho esperança )
+A   E   A   E
+Tenho um futuro  ( Tenho um futuro )
+A   B   C#m
+Dádivas do Senhor
+A   E   A   B
+Nisso eu creio, sim eu creio
+
+
+
+
+
+                   *******
+
+
+
+
+
+    G   Bm
+Os Reis da terra se prostrarão
+C   C/D
+Ante a ti Senhor
+    G   Bm
+Sim, os poderosos virão a ti
+C   C/D G   Bm  C   C/D
+E confessarão o teu poder, Senhor
+
+
+    G   Bm  C   C/D
+Não apenas de palavras, reina hoje
+
+
+G   Bm  C   C/D G   Bm  C   C/D 
+Reina hoje! Reina hoje! Entre nós
+    G
+
+Intro:   F   C   Dm7   Bb
+
+    F9  C   Dm7 Bb
+Eu jamais me curvarei, nem louvor darei a homem
+    F9  C   Bb  CsusC7
+Para reino ou rei algum, jamais darei o meu coração ou cantarei
+    F9  C   Dm7 Bb
+O desejo do coração, a lealdade e a devoção
+    F9  C   Bb
+Vão servir aquele que morreu naquela cruz
+
+
+F       C9
+Somente a um Deus assim
+    Dm7 Bb
+Eu dirijo o meu louvor e toda a minha fé
+    F   C9  (2x)
+Ao único Rei dos reis
+    Dm7 Bb
+Meus joelhos dobrarei. Tudo lhe darei
+
+
+
+    Gm7 Bb
+Ao Deus Criador, Jesus que me salva
+    Gm7 Bb
+Redime e restaura, revive e renova
+    Gm7 Csus    C7  F   C   Dm7 Bb
+Somente a um Deus assim darei meu louvor
+
+
+F       C   
+Deixou seu trono e toda a sua glória
+    Dm7 Bb  F
+Pra ser humano, um servo sofredor
+    C
+Tão rejeitado e tão maltratado
+Dm7 Bb  F
+Que amor é esse a um povo tão imerecedor?
+    C
+Não quis dominar nem julgar
+Dm7 Bb  F
+Somente nos mostrar o verdadeiro amor
+    C
+Jesus se entregou, vitória conquistou
+Dm7 Bb
+Foi lá naquela cruz.
+    F   C
+Hoje estamos livres, temos livre acesso ao Pai
+    Dm7 Bb
+Por Cristo Jesus. Vamos bem alto cantar:
+F   C9
+Somente a um Deus assim
+    Dm
+Somente a um Deus assim
+    Bb
+Somente a um Deus assim
+
+    G   D
+Em espírito, em verdade
+    C   D   G   D
+Te adoramos, te adoramos
+    G   D
+Em espírito, em verdade
+    C   D   G
+Te adoramos, te adoramos
+
+
+    Em7 Em/D
+Rei dos reis e Senhor
+    C   D   G
+Te entregamos nosso viver
+    Em7 Em/D
+Rei dos reis e Senhor
+    C   Am  Dsus    D7
+Te entregamos nosso viver
+
+
+    C   D
+Pra te adorar, ó rei dos reis
+    C/E D
+Foi que eu nasci, ó rei Jesus
+    B7  Em  D   C
+Meu prazer é te louvar, meu prazer é estar
+    D   G
+Nos átrios do Senhor
+    D   Em  Em/D    C
+Meu prazer é viver, na casa de Deus
+    D   G
+Onde flui o amor
+
+
+
+
+                   ******* 
+
+
+
+
+
+C   C7M C7  F   Fm7
+Salmos de louvor, cantemos para o Senhor
+    Em7 Am7 Dm7
+Pois cada dia que passa ele nos dá mais amor
+Gsus    G7  C   F
+Salmos, salmos, salmos de louvor
+C   Bb/C    C7
+Salmos de louvor
+
+
+    F   G7  Em7
+Louvado seja Deus, o grande rei
+Am  Dm7 G7  C
+Pra sempre cantarei o seu amor
+Bb/C    F   G7  Em7
+Teus filhos vão falar do teu poder
+Am  Dm7 G7  C   Bb/C
+Todos hão de te adorar e te bendizer
+
+
+    D9  G/D D   G   
+Eu tenho em mim um canto de vitória
+    D   Bm7 Em  A7
+Que foi escrito por Jesus na cruz
+    G   A/G F#m Bm
+Um canto lindo que mudou a história
+    Esus    E7  Asus    A7
+E que ao mundo em trevas trouxe a luz
+
+
+    D9  G/D D   G
+Eu tenho em mim um canto de esperança
+    D   Bm7 Em  A7
+Que a todos eu preciso proclamar
+    G   A/G F#m Bm
+Jesus firmou comigo uma aliança
+    G   A7  D   D7
+Na qual eu vivo e posso descansar
+
+
+    G   A/G D   Am  D7
+Eu tenho em mim um canto de alegria
+    G   A/G B7
+Eu tenho em mim um hino de louvor
+G   A7  F#m Bm
+Não apenas de palavras, mas de vida e amor
+    G   Asus    A7  D
+Que testemunha a vitória do Senhor
+
+
+D   G   D   G
+Com meus lábios canto a verdade
+    D   Bm  Em  A7
+Que o rei Jesus em breve voltará
+    G   A7  F#m Bm
+Virá com seu poder e majestade
+    G   A7  D   D7
+E com sua igreja em glória reinará
+
+
+    G   A/G D   Am  D7
+Eu tenho em mim um canto de alegria
+    G   A/G B7
+Eu tenho em mim um hino de louvor
+G   A7  F#m Bm
+Não apenas de palavras, mas de vida e amor
+    G   Asus    A7  D
+Que testemunha a vitória do Senhor
+
+    A9  Bm7 E   A9
+Jesus, a rocha eterna, a pedra angular
+    F#m C#m
+Que os poderes do inferno
+    D   Esus    E7
+Não puderam derrubar
+
+    A9  Bm7 E   A9
+Jesus, a vida eterna deixou glória e poder
+    F#m C#m
+Como sacrifício vivo
+    D7M Esus    E7
+Por nós veio morrer
+
+
+    F#m C#m D   E   A9
+Mas a morte e o inferno não puderam derrotar
+    F#m C#m
+Pois havia um plano eterno
+    D7M Esus    E7
+Que o fez ressuscitar
+
+
+    C#m F#m D7M E   A9
+E por isso toda a glória, toda honra e louvor
+    D   A
+Sejam dados a Jesus
+    D   Esus    E7
+Nosso amado salvador
+
+    D7M E   A   D   C#m F#m
+Aleluia ! Toda glória e louvor
+    D7M E   A   D   Bm7 Esus    E7
+Aleluia ! A Jesus nosso senhor
+    D7M E   A   D   C#m F#m
+Aleluia ! Toda glória e louvor
+    D7M E   A   Bm  Esus    E7  A9
+Aleluia ! A Jesus nosso senhor
+
+******* 
+
+G/A D   Bm7 
+Quando estou com o povo de Deus
+    D   Em7
+Eu sinto a maior alegria
+B7  Em7 D#5+
+Quando estou com o povo de Deus
+    A7  D
+Eu sinto a real harmonia
+
+
+A7  D   D7
+Que prazer ver o povo de Deus louvando
+    G   Gm/C
+Ao Deus de amor glorificando
+    D   Bm7
+Quando estou com o povo de Deus
+    Em7 Asus    A7
+Eu sinto a maior
+F#M7    B7  Em7 Asus    A7  D   G/A D7M
+Maior, maior das alegrias
+    E   G#m 
+Te contemplo, ó Pai
+    C#m Bm  E
+Na beleza da tua santidade
+    A   E
+Te adoro com amor
+    F#m B7
+Em espírito e em verdade
+
+    A   E
+Por aquilo que tu és
+    G#m C#m
+Eu me prostro aos teus pés
+    D   F#m B7
+Ministrando a ti a minha adoração
+    D   F#m Bsus    B7
+Ministrando a ti a minha adoração
+
+
+A   B7  G#m C#m A   B7  C#
+Santo, santo, santo és tu Senhor
+A   B7  G#m C#m A   B7  E
+Santo, santo, santo és tu Senhor
+
+
+    E   G#m 
+Tu és minha alegria
+    C#m Bm  E
+E a minha força pra viver
+    A   E
+Sacias minha sede
+    F#m B7
+E completas o meu ser
+    A   E
+Dentro do meu coração
+    G#m C#m
+Só existe adoração
+    D   F#m B7
+Encontraste em mim um trono para ti
+    D   F#m Bsus    B7
+Encontraste em mim um trono para ti
+
+
+A   B7  G#m C#m A   B7  C#
+Digno, digno, digno és tu Senhor
+A   B7  G#m C#m A   B7  E
+Digno, digno, digno és tu Senhor
+
+    D7M A9  Bm7
+Em meio aos muitos problemas
+    Em  D/F#    A9
+Em meio às lutas sem fim
+D   A9  Bm7
+Por entre os muitos dilemas
+Em  A9
+Que se apresentam a mim
+    D7M A9  Bm7
+As vezes eu posso passar
+    Em  D/F#    A9
+Uma noite inteira a chorar 
+    D7M G
+Mas sei que o meu Deus logo pela manhã
+
+    Em  A9  Asus    A7
+Fará novamente o sol brilhar
+    Bm7 F#m
+E encherá de alegria os meus lábios
+    G   A9  D
+E o meu coração de louvor
+
+
+    Em  A7  F#m Bm7
+Assim vou descansar, sim, eu vou confiar
+    Em  A9  D
+No seu grande e imenso amor
+
+
+A9  D7M G   A9  Bm7
+Deus é fiel, é fiel
+    G7M D7M
+Acima de todas as coisas, eu sei
+    G7M Asus    A7
+Eu sei que o meu Deus é fiel
+A9  D7M G   A9  Bm7
+Deus é fiel, é fiel
+    G7M D7M 
+Acima de todas as coisas, eu sei
+    G   A9  D
+Eu sei que o meu Deus é fiel
+
+
+G7M D7M
+Acima das circunstâncias, eu sei
+    G   A9  D
+Eu sei que o meu Deus é fiel
+    G7M D7M
+Acima dos impossíveis, eu sei
+    G   A9  D
+Eu sei que o meu Deus é fiel
+G7M D7M
+Acima da morte e da vida, eu sei
+    G   A9  D7M
+Eu sei que o meu Deus é fiel
+
+    A   Em  A
+Fomos comprados por teu sangue precioso
+    D   Em  D
+Fomos alvo da tua grande salvação
+    E   A
+Trazidos de uma vida sem sentido
+    B7  E   D/E
+A tua luz nos fez santa nação
+
+
+    A   Em  A
+Um povo que conhece a tua graça
+    D   Em  D
+Não pode se calar, se esconder
+    E   A
+Que a nossa voz se ouça em cada praça
+    B7  E   D/E
+Que a tua voz nos diga o que dizer
+
+
+    E   G#m A
+Tal como o sal a tudo dá mais gosto
+    E   F#m E
+Eu quero dar ao mundo o teu sabor
+    F#m G#m C#m
+Semente, folha, flor e fruto
+    Eb  G#
+Que a planta cresça e dê valor
+    C#  F#
+Que esta luz esteja sempre a iluminar
+    B7  E7
+Que este sal não perca nunca seu poder
+
+
+    A   Em  A
+Vivendo, sabe lá, por outros mares
+    D   Em  D
+Levando tua marca e teu poder
+    E   A
+Falando a cada língua, povo e raça
+    B7  E   D/E
+Da fonte de onde pode se beber
+
+
+    A   Em  A
+Que seja, lá ou cá, a nossa vida
+    D   Em  D
+Razão pra que te possam conhecer
+    E   A
+E o mundo possa ver em nossos dias
+    B7  E   D/E
+Que o caminho é no teu nome crer
+
+Intro: Dm7  Dm/C    Dm/Bb   Gm7M    A   Dm7 C/D
+
+    Dm7 Dm/C    Gm7 Asus    A7  
+O meu louvor é fruto do teu amor por mim, Jesus
+    Dm7 Dm/C    Bb7M    Bb/C    C7
+De lábios que confessam o teu nome
+    F7M Bb7M    Gm7 A7
+É fruto de tua graça e da paz que encontro em ti
+Dm7 Dm/C    Gm7 Asus    A7
+E do teu Espírito que habita em mim
+    Dm7 Am7 (C/A    Cº/D)
+Que habita em mim
+
+
+    Gm7 C7  F   C/E Dm7
+Ainda que as trevas venham me cercar
+    Gm7 C7  F   C/E Dm7
+Ainda que os montes desabem sobre mim
+    Gm7 Asus    A7  Dm7 Dm/C
+Meus lábios não se fecharão
+    Gm7 Asus    A7  Dm7 Am7
+Pra sempre hei de te louvar
+
+
+    Gm7 C7  F   C/E Dm7
+Ainda que o homens se levantem contra mim
+    Gm7 C7  F   C/E Dm7
+Ainda que cadeias venham me prender
+    Gm7 Asus    A7  Dm7 Dm/C
+Meus lábios não se fecharão
+    Gm7 Asus    A7  Dm7 Am7
+Pra sempre hei de te louvar
+
+
+                ****************
+
+Bm7 E
+Quem quiser poderá provar
+    Bm7 E
+E quem beber, sua sede vai matar
+    G9  A9  Bm7 C#m7    F#  Bm  F# 7    
+Da Água da vida que Cristo dá
+
+G9  A9  D7M
+Deus é paz, toda guerra dissipou
+G9  A9  D7M
+Deus é vida, sobre a morte triunfou
+    G   F#  Bm  Bbº E/G#
+E se ele entrar em seu coração
+G9  F#sus   F#7 
+Rios de água viva fluirão
+
+
+G9  A9  D7M
+Vem viver na presença de Jesus
+G9  A9  D7M
+Conhecer seu amor e sua luz
+    G   F#  Bm  Bbº E/G#
+Vivendo assim, você vai sentir
+G9  F#sus   F#7 
+Rios de água viva do seu coração fluir
+    A9  Bm7 C#m7    D
+Verei em ti tão profundo amor
+    A9  Esus    E7  A9  D/E 
+Que irá minha alma inundar
+    A9  Bm7 C#m7    D   
+Sentirei de ti uma paz tão maior
+    A9  Esus    E7  A9  
+Meus medos irá dissipar
+
+
+D7M A9  
+Estar contigo, ó Pai
+E   A9
+Tua presença desfrutar
+D7M A9  Bm7 Esus    E7
+Pois tua glória sempre me transportará
+D7M A9  E   A9
+E ao te contemplar, posso antever
+D7M A9  Bm7 Esus    E7
+O que o futuro, hoje vem me oferecer:
+
+D7M A9  E   A9  D7M A9  Esus    A9
+Paz, força e amor, glória e honra
+D7M A9  E   A9  D7M A9  Esus    E7  A9  
+Estar contigo, estar contigo
+
+
+
+
+
+
+                   ******* 
+
+
+
+
+D9  A   Bm7
+Nos prostramos aos teus pés
+    G9  Asus    A7
+Te adoramos, Cristo
+D9  A   Bm7 
+Encontramos graça e amor
+    Em7 Asus    A7
+Aos teus pés, Senhor
+
+    G9  Asus    A7
+O cordeiro é santo, santo
+    G9  Asus    A7
+O cordeiro é santo, santo
+    G9  Asus    A7
+O cordeiro é santo, santo
+    D9
+É o Senhor
+
+E   A   E   C#m F#m Bsus    B7  E   E7  A   Am
+Aleluia, aleluia, aleluia
+E   Bsus    B7  E       
+Te  louvamos, ó Senhor
+
+
+    E   A
+Porque  só  tu conheces quem nós realmente somos
+    E   C#m F#m BsusB7
+E mesmo assim nos ama como ninguém é capaz
+    E   E7  A   Am
+E só tu tens a água que nós tanto procuramos
+    E   Bsus    B7  E   A/B
+E essa nossa sede satisfaz
+
+
+    E   A
+Porque tu nos compraste pelo sangue do teu filho
+    E   C#m F#m Bsus    B7
+Pagaste o resgate nos livraste da prisão
+    E   E7  A   Am
+E a pedra em nosso peito sem calor, sem cor, sem brilho   
+    E   Bsus    B7  E   C7
+Trocaste por um novo coração
+
+
+    F   Bb
+Porque o teu Santo Espírito inunda  a nossa vida
+    F   Dm  Gm  Csus    C7
+De amor e alegria, chega até a transbordar
+    F   F7  Bb  Bbm
+E teu poder que sara e cicatriza a ferida
+    F   Csus    C7  F   C7  
+Nos mostra o caminho onde andar!
+
+
+
+F   Bb  F   Dm  Gm  Csus    C7  F   F7  Bb  Bbm
+Aleluia, aleluia, aleluia
+F   Csus    C7  F   C7      
+Te  louvamos, ó Senhor
+
+
+    F   Bb
+Porque um dia Cristo voltará aqui de novo
+    F   Dm  Gm  Csus    C7
+Em majestade e glória, de repente vai chegar
+    F   F7  Bb  Bbm
+Irá levar-nos juntos reunidos num só povo
+    F   Csus    C7  F   C7
+E face a face iremos te louvar
+
+    Em7 Bm7
+Eu sei que foi pago um alto preço
+C   Em7
+Para que contigo eu fosse um, meu irmão
+Em7 Bm7
+Quando Jesus derramou a sua vida
+C   D   D#º
+Ele pensava em ti, ele pensava em mim
+    Em7
+Pensava em nós
+
+    C7M G9
+E nos via redimidos com seu sangue
+    C7M G9
+Lutando o bom combate do Senhor
+    C7M 
+Lado a lado trabalhando
+    Em7 A7
+Sua igreja edificando
+    G9  Dsus    D7  
+E rompendo as barreiras pelo amor
+
+    G9  D
+E na força do Espírito Santo
+    C7M G
+Nós proclamamos aqui
+    C7M G
+Que pagaremos o preço de sermos
+    A7  Dsus    D7
+Um só coração no Senhor
+    G9  D
+E por mais que as trevas militem
+    C7M G
+E nos tentem separar
+    C7M G
+Com nossos olhos em Cristo
+    C   D   Em7
+Unidos iremos andar
+    C   D   G
+Unidos iremos andar
+
+Intro:      (   E   F#m G#m A   B)
+E
+Eu te busco
+E   A
+Te procuro, Oh Deus
+C#m B   A
+No silencio tu estas 
+E
+Eu te busco
+E   A   
+Toda hora espero em Ti
+    A
+Revela–te a mim
+C#m B   A
+Conhecer–te eu quero mais 
+
+E   B
+Senhor, te quero
+C#m A
+Quero ouvir tua voz
+E   B   A
+Senhor, te quero mais
+E   B
+Quero tocar–te
+C#m A
+Tua face eu quero ver
+E   B   A
+Senhor, te quero mais 
+
+E   A
+Prosseguindo para o alvo eu vou 
+C#m B   A
+A coroa conquistar
+E   
+Vou lutando
+E   A
+Nada pode me impedir
+    A
+Eu vou te seguir
+C#m B   A
+Conhecer–te eu quero mais
+
+
+                    ******* 
+     
+
+D       Bm7 G7M Asus    A7          
+Somos um corpo em Cristo, aleluia
+D       Bm7 G7M Asus    A7          
+Somos um corpo em Cristo, aleluia
+
+F#m7    Bm7 
+Quando estamos juntos
+    G   A       
+Entre nós Jesus está
+F#m7    Bm7 
+Quando estamos juntos
+    G   A       
+Há poder e autoridade
+    G   D   G/A
+Em Seu nome
+D9
+Abra os olhos do meu coração
+D9/C
+Abra os olhos do meu coração
+    Bm  G   D9
+Quero te ver, quero te ver, Senhor
+
+
+    A9  Bm
+Exaltado e bem alto
+    G   A9
+Brilhando a luz da tua glória
+    Bm
+Derrame seu amor e poder
+    Em  F#m G   A9
+Pois tu és santo, santo, santo
+
+
+D9
+Santo, santo, santo
+D9/C
+Santo, santo, santo
+Bm  G   D
+Santo, santo, santo, quero te ver
+
+
+    D9  D9/C
+Eu quero te ver, eu quero te ver
+    Bm
+Eu quero te tocar
+    G   D9
+Eu quero te abraçar, quero te ver
+
+
+
+                   ******* 
+
+
+G9  D9  C7M
+Não é pelo meu mérito, ó Deus
+Am7 D   C7M
+Mas, sim, por tua graça, Senhor
+G9  D9  C7M
+Que hoje tenho vida
+Am7 Dsus    D7  G   (C/D)
+E canto a ti louvor
+
+
+Em7 D   Am7
+No dia mau, és meu refúgio
+    C   D/C G9
+Rocha da minha salvação
+Em7 D   Am7
+Na tempestade, porto seguro
+
+
+C   D   Bm7 Em7
+Tu és meu Deus, tu és meu Deus
+C7M D   Gsus    G
+    Senhor do meu coração
+
+    F9  C   Gm  Bb9                 
+Luz das nações que dissipa as trevas
+F9  C   Bb9                                  
+Abre os meus olhos pra ver
+F9  C   Gm  Bb9                         
+Lindo Tu és, eu só quero adorar-Te 
+F9  C   Bb9                             
+Dar os meus dias pra Ti
+
+    F9  C/E         
+Vim pra adorar-Te vim para prostrar-me
+    F/A Bb9                         
+Vim para dizer que és meu Deus
+    F9  C/E                     
+Totalmente amável, totalmente digno 
+    F/A Bb9                               
+És maravilhoso para mim
+
+F9  C   Gm  Bb9                         
+Rei sobre todos, Tu és exaltado
+F9  C   Bb9                     
+Entronizado nos céus 
+F9  C   Gm  Bb9                               
+Humildemente, vieste à Terra 
+F9  C   Bb9                         
+Se entregou por amor 
+
+    C   Dm  Bb9                                 
+Eu nunca saberei o preço
+    C   Dm  Bb9                                 
+Dos meus pecados, lá na cruz
+
+Intro: Am   G   Am  G
+
+Am  G/B C
+Assim como a noite aguarda o sol
+Am  G/B C
+Como a brisa sonha um dia soprar
+    D   Am
+Como a terra seca espera a chuva
+    D   Am
+Como o rio anseia pelo mar
+    D   F   G   Am  A7
+Eu desejo tanto ver o dia chegar.
+
+
+    Dm
+O dia da vitória
+    G   C
+Em que virá meu salvador
+    E7  Am
+Sim, Jesus Cristo, o Senhor
+    Dm  E7
+Virá nas nuvens para me levar
+    Dm
+Se tornará verdade
+    G   C
+Tudo o que sempre sonhei
+    E7  Am
+Tristeza eu não mais terei
+    Dm  E7
+E toda a lágrima do meu olhar
+    Am  G   Am
+Ele enxugará
+    fim (E7 Am)  
+
+
+Am  G/B C
+Braços levantados livres do mal
+Am  G/B C
+Igualdade e justiça haverá
+    D   Am
+Já não mais terá morte ou guerra
+    D   Am
+Novo céu e uma nova terra
+    D   F   G   Am  A7
+Eu desejo tanto ver o dia chegar
+
+    A
+Mergulhar em teu ser
+    Bm7
+Encontrar-me contigo
+    A/C#    D9
+Meu maior prazer, ser teu amigo
+    F#m7    F#m7/E
+Ouvir tua voz
+    C#m7
+As batidas do teu coração
+Bm7 Bm7/A
+Fala, Senhor
+    E/G#    D/E
+Ensina-me a tua canção
+
+
+
+    A9  Bm7
+Conhecerei e prosseguirei
+    D7M Esus
+Em conhecer-te, Senhor
+E7  F#m7    F#m7/E
+Me lançarei com tudo o que sou
+    F#m7/D# D9  D/E
+Nas profundezas do teu imenso amor
+    A   Bm7
+Te amarei com meu coração
+    D7M Esus
+Com todas as minhas forças
+E/G#    G9  D/F#
+E cantarei louvores
+E   D   D/E A   D/E
+A ti, meu Deus, meu Redentor
+E   D   D/E A
+A ti, meu Deus, meu Redentor
+
+
+                   ******* 
+         
+
+    D   G   D/F#    Bm
+Minha alma engrandece ao Senhor
+    Em  A7  D   A7
+Meu espírito se alegra em Deus, meu salvador
+    D   G   D/F#    Bm
+Pois com poder tens feito grandes coisas
+    Em  A7  D   D7
+E com misericórdia, demonstrado amor
+
+G   A9  F#m Bm  G   A7  D   D7
+Santo, santo, santo és Senhor
+G   A9  F#m Bm  G   A7  D   D7
+Santo, santo, santo é o Senhor
+
+
+    G   A9
+Tens enchido nossas lâmpadas
+    F#m Bm
+Com o óleo do Espírito
+    G   E7  A   A7
+Tem feito sua vide florescer
+    E9  A9
+A cada manhã, a cada manhã
+    E9  C#m7    F#m7    Bsus    
+As misericórdias se renovam, a cada manhã
+    E
+
+    C7M D9
+Olhai os lírios dos campos
+    Bm7 Em7
+E os pássaros do céu
+    C7M D9
+Deus cuida de todos eles
+    G   D/F#    Esus    E7
+Com fidelidade e amor
+Am7 D
+Não semeiam nem ceifam
+    F#M7    B7  Em7
+Mas refletem a glória de Deus
+    C7M D   E
+A cada dia, a cada manhã
+
+
+    E9  A9
+A cada manhã, a cada manhã
+    E9  C#m7    F#m7    Bsus    
+Nossa esperança se renova, a cada manhã
+    E
+
+    C7M D9
+Assim como o Senhor
+    Bm7 Em7
+Alimenta as aves do céu
+    C7M D9
+Veste os lírios dos campos
+    G   D/F#    Esus    E7
+De beleza e esplendor
+Am7 D
+Ele cuida as nossas vidas
+F#m7    B7  Em7
+Supre as necessidades
+    C7M D   E
+A cada dia, a cada manhã
+
+
+    E9  A9
+A cada manhã, a cada manhã
+    E9  C#m7    F#m7    Bsus    
+Nossa alegria se renova, a cada manhã
+
+
+    E9  A9
+A cada manhã, a cada manhã
+    E9  C#m7    F#m7    Bsus    E
+Nossa confiança se renova, a cada manhã
+
+
+    D
+Ó Deus, tu és o meu Deus forte
+    A
+O grande EL-SHADDAI
+Bm  F#m G
+Todo poderoso, ADONAI
+    D   A/C#
+Teu nome é maravilhoso
+    Bm  G
+Conselheiro, Príncipe da Paz
+    D   A   G
+YESHUARAMASHIA, Deus Emanuel
+
+
+D   A/C#
+O Pastor de Israel, o Guarda de Sião
+Bm  F#m G
+A brilhante Estrela da Manhã
+    D   A/C#
+Jesus, teu nome é precioso
+    Bm  G
+Meu Senhor e Cristo
+    D   A   G
+O nome sobre todos pelo qual existo
+
+
+    D   A/C#    Bm  G
+JIRÊH, o Deus da minha provisão
+    D   A/C#    Bm
+SHALOM, O Senhor é a minha paz
+Em  Em7 A
+SHAMAR, Deus presente sempre está
+    Em  G   A   G   D
+EL-ELION, outro igual não há
+
+
+    A/C#    Bm
+JEOVAH RAFA, meu Senhor
+    G
+Que cura toda a dor
+    D/F#    Em  A   D
+TSEDEKENU  YAVEH, minha justiça é
+    Bm  A
+ELOHIM, ELOHIM, Deus no controle está
+    G   A/G D
+Meu Deus, tudo governa
+
+D7M A/C#                        
+Meu Jesus maravilhoso és
+    Bm7 Bm7/A                               
+Minha inspiração a prosseguir
+    Em  Em/D                             
+E mesmo quando tudo não vai bem
+    G9  Asus    A7                              
+Eu continuo olhando para Ti
+    D7M A/C#                        
+Pois sei que Tu tens o melhor pra mim
+    Bm7 Bm/A                               
+Há um segredo no Teu coração
+    Em7 Em/D                              
+Oh da-me forças pra continuar
+    G9  Asus    A7                            
+Guardando a promessa em oração
+
+D7M A/C#    Bm7                            
+Firme , oh Deus está o meu coração
+    B/D#    Em7                       
+Firme nas promessas do Senhor
+    Em/D    C7M                             
+Eu continuo olhando para Ti
+    G/A D                   
+E assim eu sei que posso prosseguir
+    D/C                             
+E mesmo quando eu chorar 
+    B7  Em7                               
+As minhas lágrimas serão
+    Em  Gm                              
+Para regar a minha fé 
+    G/A D7M                             
+E consolar meu coração
+    D/C                     
+Pois o que chora aos pés da cruz
+    B7  Em7                             
+Clamando em nome de Jesus
+    Em/D    G9                              
+Alcançará de Ti , Senhor, 
+    G/A D7M                          
+Misericórdia , graça e luz
+
+                                                                D   A/C#    Bm7 Bm/A
+Teu grande amor não cessa ,eterno não tem fim
+    Em                               
+Quão grande és Tu Senhor 
+    G9  Asus    A7                              
+Quão grande és para mim
+    D   A/C#    G9  Bm/A    Tua graça é meu refúgio,descanso no Teu poder
+Em7 G9  G/A D            
+Maravilhoso és , Maravilhoso és para mim
+
+        D   A   Em                   
+Quando o som se vai tudo se desfaz 
+    Asus    A                   
+Eu me achego a Ti
+D       A   Em                     
+Para dar-te ó Deus algo de valor 
+    Asus    A                   
+Que alegre a Ti
+
+Em  D   A                           
+Dar-te-ei mais que uma canção
+    Em      D   A      
+Pois a música em si, não é o que queres de mim
+Em  D   A   Em       
+Tu sondas meu interior sabes tudo que sou
+    D   A                           
+E queres meu coração
+
+D       A                           
+Quero adorar-te com minha alma 
+    Em  G   A   D   
+És o meu Salvador e a essência do meu louvor
+D       A                            
+Perdão Senhor é o que mais quero
+    Em  G   A   D                
+És o meu redentor e a essência do meu louvor
+
+D       A   Em                                       
+Não sei explicar teu grandioso amor 
+    Asus    A                       
+Tu mereces mais 
+D       A   Em                                          
+Pobre fraco sou mais o que tenho é Teu
+    Asus    A                
+Minha vida dou
+
+Em  D   A                                    
+Dar-te-ei mais que uma canção
+    Em  D   A    
+Pois a música em si, não é o que queres de mim
+Em  D   A   Em  
+Tu sondas meu interior sabes tudo que sou
+    D   A                           
+E queres meu coração
+
+
+C9      Dm7 C9          
+Meu amigo está aqui, veio me encontrar
+    Dm7                      
+Chamei o seu nome
+    C9                       
+Ele me ouviu chamar
+    Dm7 C9       
+Que bom que estas aqui, doce Espírito de Deus
+    Dm7                     
+Sinta-se em casa neste lugar
+
+F7M     Am7                      
+Manifesta Tua glória
+    G9  2X               
+Tua presença eu necessito mais 
+
+    Am7 G9                           
+Estou aqui, envia-me
+    F             
+Disponho a minha vida
+    C       
+Viverei em santidade
+
+    Am7 G9                               
+Estou aqui, envia-me
+    F7M
+Disponho a minha vida
+    C9      
+Viverei em santidade
+
+    G9          
+Buscarei a Tua face
+    F7M Dm7 C9                                    
+Manifesta Tua glória em mim
+
+F/G     C9                        
+Vem restaurar Tua casa , vem Jesus
+    Am7 Am/G                        
+Transformar a igreja em Tua noiva
+Dm7 F7M G9               
+Vem curar, vem trazer a salvação
+
+        Am  D       
+Sei que Teus olhos
+    G   C       
+Sempre atentos permanecem em mim
+Am      D       
+E os Teus ouvidos 
+    G   C       
+Estão sensíveis para meu clamor
+    Am  D       
+Posso até chorar 
+    G   D/F#    Em          
+Mas a alegria vem de manhã
+C       Bm  Am  D           
+És Deus de perto e não de longe 
+C       Bm  Am  F   C/E D       
+Nunca mudaste Tu és fiel 
+
+    G/B Em      
+Deus de aliança, Deus de promessas
+    Am  D       
+Deus que não é homem pra mentir
+    G/B Em      
+Tudo pode passar, tudo pode mudar
+    Am  D       
+Mas Tua palavra vai se cumprir
+
+Em      D   C
+Posso enfrentar o que for
+    D   Em
+Eu sei quem luta por mim
+    D   C
+Seus planos não podem ser frustrados
+Em      D   C       
+Minha esperança está 
+    D   Em
+Nas mãos do grande Eu Sou
+    D   F   C/E Dsus    D7  
+Meus olhos vão ver o impossível acontecer
+
+
+F9      C/E Dm7 Dm/C    Gm7 Bb/C    C7  
+Não há maior,    não há igual a Ti
+F9      C/E Dm7 Dm/C    Gm7 Bb/C    C
+Amigo fiel, consolador, Tu és
+
+Gm9     Bb/C    Gm9 Bb/C    C
+Eu quero entregar,   eu quero derramar
+    F9  C/E Gm9
+A minha vida em Teu altar
+    A7/C#   Dm7 Dm/C    Gm7   * Bb    F/A   Gm9   (1ªvez)
+A minha    vida em Teu  altar
+
+F9      C/E Dm7 Dm/C    Gm7 Bb/C    C7
+Atrai-me Senhor,   eu correrei para Ti
+F9      C/E Dm7
+Em Teus braços de amor
+    Dm/C    Gm7 Bb/C    C     
+Me esconderei, atrai-me     G(modular)    * C/D  D7  G
+
+G       D/F#    Em  G/D Am7 C/D     D   
+Não há maior,    não há igual a Ti
+G       D/F#    Em  G/D Am7 C/D D
+Amigo fiel, consolador, Tu és
+
+Am7     C/D Am7 C/D D
+Eu quero entregar,   eu quero derramar
+    G9  D/F#    Am7
+A minha vida em Teu altar
+    B7/D#   Em7 Em7/D   C     G/B    Am   
+A minha    vida em Teu  altar
+
+G       D/F#    Em  G/D Am7 C/D D
+Atrai-me Senhor,   eu correrei para Ti
+G       D/F#    Em
+Em Teus braços de amor
+    G/D     Am7 C/D D     
+Me esconderei, atrai-me
+
+*******
+
+D9  G/B A/C#            
+Fui perdoado porque o rejeitaram
+D/F#        G   A
+Fui aceito e o condenaram
+D/F#        G   A
+Seu Espírito vive em mim, pois Cristo
+    G   Asus    A7  D   G/D
+Por mim morreu e ressuscitou
+
+D       G
+Precioso amor não sei explicar
+D       Asus    A7
+Porque Jesus morreu por mim
+D       G
+Precioso amor, com fé vou andar
+D       A
+O meu prazer é honrar Jesus
+
+    G   A   D
+Ao meu Jesus eu quero honrar
+
+D   G/D D   G/D D   G   D
+Ele é o meu rei, ele é o meu rei
+    D   Em7 D/F#    Em7 D   Em7 D/F#    Em7
+Jesus é o meu rei, Jesus é o meu rei
+
+    C   C   F
+Sou grato por tudo que tenho
+    C   C   G
+O tesouro maior deste mundo
+    C   C7  F
+Me foi dado como herança eterna
+    C   G   F   C
+Maior prova de um amor tão profundo
+    C   C   F
+Tenho vida, alegria em todo o tempo
+    C   C   G
+Tenho amigos, família, muitos irmãos
+    C   C7  F
+Foi Jesus meu amigo verdadeiro
+    C   G   F   C
+Que fez tudo ao me dar a salvação
+    C   C   F
+Louvarei ao Senhor em todo o tempo
+    C   C   G
+Seu louvor estará continuamente
+    C   C7  F
+Em meus lábios e também no coração
+    C   G   F   C
+Jesus Cristo será sempre minha canção
+
+    C   F   
+Iê Ieê, Iehovah! 
+    G   F   C
+Iê Ieê, Iehovah! 
+
+
+*******
+
+E                       F#      
+Somos convidados para adorar 
+    A   E   D   A/B 
+Ao único e verdadeiro Deus
+E                        F#      
+Como Pai gracioso veio nos amar 
+A                                       E       D   A/B 
+Preocupado com os que são seus
+E   F#      
+Viu nossa miséria, nossa condição
+A   E   D   A/B 
+Sem uma esperança, sem uma razão
+E   F#      
+Com a sua graça, com o seu perdão
+A   E    
+Deu-nos vida nova em Jesus
+
+G#m7                        C#m7
+Ele é o Filho amado, prazer do nosso Pai
+F#m7    E   G#sus   G#7
+Tem em suas mãos o poder de nos guiar
+C#m F#
+Juntos levantemos sempre nossas mãos
+F#m E/G#    A   F#/A#   Bsus    B7  E   F#
+E a uma voz louvemos a Jesus, o Senhor
+
+    E   F#  E   F#  E
+Senhor da Glória,   Senhor da História,   Rei de vitória
+
+
+E   A7M Bsus    B7
+Em meu coração há uma canção
+E   A7M Bsus    B7
+Que demonstra minha paixão
+C#m C#m/B   A7M
+Pelo meu Rei e meu Senhor
+F#m F#m/E   D   Bsus    B7
+Por aquele que me amou
+
+
+E   A7M F#m Bsus    B7
+Formoso és, meu Senhor
+E   A7M F#m Bsus    B7
+Formoso és tu, amado meu
+F#m Bsus    B7
+Tu és a fonte da minha vida
+F#m E/G#    A7M Bsus    B7
+E o anelo do meu coração
+
+
+
+
+                ******* 
+
+
+Bm7 E7  A   E   A
+Dá-me mais Senhor do teu grande amor
+    D   A
+Derrama sobre mim, o novo óleo
+    Bm7 E
+Enche minha vida, da Tua alegria
+Bm7 E7  A
+Sei que estás aqui
+E   A
+Sinto teu fluir
+    D   A
+Quebrando as cadeias, rompendo as barreiras
+    Bm7 Esus    E7
+Sarando as feridas, curando minha vida
+
+
+    D7M A   
+É meu maior prazer, Te adorar Senhor
+F#m Bm7 E
+Prostrado aos Teus pés, canto uma nova canção
+    A   A7
+E adoro a Ti
+        D7M A9
+Levanto as minhas mãos, Te dou o meu coração
+F#m Bm7 Esus
+Quando tua glória eu vi, quero então dizer
+E7  A   G/A A7
+Eis-me aqui Senhor  
+
+    A   E   C#m
+Todos necessitam de um amor perfeito
+    B   A
+Perdão e compaixão
+A   E   C#m
+Todos necessitam de graça e esperança
+    B   A   B   A   B
+De um Deus que salva
+
+
+
+E   B
+Cristo move as montanhas
+    A   E
+E tem poder pra salvar
+    C#m B
+Tem poder pra salvar
+    E   B
+Pra sempre autor da salvação
+    A   E
+Jesus a morte venceu
+    C#m B   Fim (E)
+Sobre a morte venceu
+
+
+
+A   E   C#m
+Me aceitas com meus medos, falhas e temores
+B   A
+Enche o meu viver
+A   E   C#m
+A minha vida entrego pra seguir seus passos
+    B   A   B   A   B
+A ti me rendo
+
+
+
+A       E   B
+Possa o mundo ver brilhar a luz
+    A   E   B   
+Cantamos para a glória do Senhor Jesus
+
+Intro   D   D/B G   A
+
+    D
+Tu és santo (Tu és santo)
+    G
+Poderoso (Poderoso)
+    Em
+Tu és digno (Tu és digno)
+    A
+De adoração (De adoração)
+    D
+Eu te sigo (Eu te sigo)
+    G
+Eu te ouço (Eu te ouço)
+    Em
+Para sempre (Para sempre)
+A   D   A   D
+Te amarei (Te amarei)
+
+
+    G   A
+Eu canto e louvo 
+
+(Ele é meu Senhor, Ele é o Rei dos reis)
+    Bm  D
+Ao Rei que é digno
+
+(Ele é o Pai de amor, Poderoso Deus)
+    G   A
+Eu o amo e o adoro
+
+(É o Emanuel, Ele é o Grande Eu Sou)
+    Bm  D
+Diante dele eu me prostro
+
+(Ele é o cordeiro que me salvou)
+    G   A
+E eu canto e louvo
+
+(Ele vivo está, Ele ressurgiu)
+    Bm  D
+Ao Rei que é digno
+
+(Sempre reinará, Ele sempre existiu)
+    G   A
+Eu o amo e adoro
+
+(Ele é o Alfa, o ômega, o Início e o Fim)
+    Bm  E7
+Diante dele eu me prostro
+
+(Salvador e Messias, amigo pra mim)
+
+
+    G   A   D   
+Príncipe da Paz. Só por Ele eu viverei
+
+
+Bm  A   G   D/F#    G9 (2x)
+
+Bm  A   G   D/F#    G9  D/F#    G9  A/C#    D
+    C9  F/A
+Preciso ouvir a voz de Deus
+    C9  Gsus    G7
+Saber o que Ele quer de mim
+    Am  F   C9
+Preciso aprender a depender de Deus
+    Gsus    G7
+Cada vez mais
+    Dm7 C9  F
+Preciso andar debaixo da unção
+    Am7
+Do meu Senhor
+    Dm7 C9
+Preciso ser mais servo
+    F   Gsus    G7
+E servir com muito mais amor
+
+
+
+    C9  F/A
+Preciso ouvir Deus me falar 
+    C9  Gsus    G7
+Ainda que Ele vá me corrigir
+    Am  F   C9  Gsus    G7
+Preciso aprender a ser fiel até o fim
+    Dm7 C9  F   Am7
+Preciso andar debaixo de sua poderosa mão
+    Dm7 C9  F
+Abandonar-me aos braços de Jesus
+    Gsus    G7
+Em plena adoração
+
+
+
+    D   G/B G   A
+E aí, eu sei que nada neste mundo pode me atingir
+    Bm  E/G#    Em7 Asus    A7
+E aí, eu sei que venço as fraquezas que há em mim
+    Em  D   G   Bm  
+Naquela cruz abriste os braços e venceste tudo
+    Em  D   G   Asus    A7
+Maior amor não há Jesus, Tu és maravilhoso
+    Bsus    B7
+Maravilhoso!
+
+
+
+    E   A/C#    A   B
+E aí, eu sei que nada neste mundo pode me atingir
+    C#m F#/A#   F#m Bsus    B7
+E aí, eu sei que venço as fraquezas que há em mim
+    F#m7    E   A   C#m
+Naquela cruz abriste os braços e venceste tudo
+    F#m7    E   A   B
+Maior amor não há Jesus, Tu és maravilhoso
+
+
+    E   A/C#    E   A/C#
+Preciso ouvir a voz de Deus.   Preciso ouvir Deus me falar
+
+    D   G
+Quem é esse Rei da Glória, que me abraça com amor
+    D   G
+E com falar suave, surpreende meu viver
+    G/B Bm
+Meu coração recorda, o perdão que me lavou
+    A   G
+Quem é esse Rei da Glória
+    D
+Ele é tudo pra mim
+
+    D   G
+Quem é esse Rei de anjos, o Príncipe da Paz
+    D   G
+Revela seus mistérios, do alto para mim
+    G/B Bm
+Meu espírito almeja, sua graça a me firmar
+    A   G
+Quem é esse Rei da Glória
+    D
+Filho do Deus Criador
+
+D   G   Bm  A
+Seu nome é Jesus, Precioso, Poderoso
+    G   D
+Rei do meu ser, Rei da Glória
+
+    D   G
+Quem é esse Rei da Glória, majestoso e com poder
+    D   G
+Sabedoria plena, gracioso Rei dos reis
+    G/B Bm
+Senhor dos céus e terra, de tudo é o Criador
+    A   G
+Quem é esse Rei da Glória
+    D
+Ele é tudo pra mim
+
+    D9  G
+Poderoso, Majestoso, sê comigo assim
+    D9  G
+Poderoso, Majestoso, ao meu lado até o fim
+    D   Em  D/F#
+Estende tua mão, derramado ao chão
+    G   Asus    D9
+Imploro o Teu perdão, cura, amor, compaixão
+
+
+    D9  G
+Glorioso, Venturoso, Maravilhado estou
+    D9  G  
+Glorioso, Venturoso, minha vida mudou
+    D   Em  D
+Assim quero estar, quero cantar
+    G   A   Em  D   G   A
+Subir te encontrar e em Ti descansar
+
+
+    Bm  A9 
+Elevarei meu coração
+    G   D
+Entoarei a mais bela canção
+    Em  D
+A Ti cantarei todo Louvor
+    G
+Proclamarei
+    A   D
+Todo o Teu perfeito amor 
+
+
+
+*******
+
+
+
+G   C/G     D/F#    G
+Perto quero estar,  junto aos teus pés
+D/F#    C/E D   Em7
+Pois prazer maior não há
+    Em7/D   C
+Que me render em te adorar
+G   C/G D/F#    G
+Tudo que há em mim,  quero te ofertar
+D/F#    C/E D   Em7
+Mas ainda é pouco eu sei
+    Em/D    C
+Se comparado ao que ganhei
+G/D C   D   G
+Não sou apenas servo, teu amigo me tornei
+    C/E D/F#
+
+
+G   D/G C/G G   D/F#    C/G D/F#
+Te louvarei , não importam as circunstâncias
+G   D/G C/G Em7 D/F#    G
+Adorarei , somente a Ti Jesus
+
+(C/G  G9  C/G  G9)
+    C/G G   Em6 Em7
+É o Teu povo, aqui presente
+    Am7 G/B C7M Dsus
+Todos numa só voz, declarando que só
+    C/G G
+Tu és grande
+    C/G G   Em6 Em7
+Exaltamos, Teu doce nome
+    Am7 G/B C7M Dsus
+Pelo amor, pela cruz, por Teu filho Jesus
+
+    C/G G   B7
+Pois és Santo, sim és digno
+    Em7 F9
+De louvor e de ser adorado
+    C/G G   C9
+És bondoso, Pai querido
+    Bm7 Em7 F   Dsus    C/G G
+Dentre todas as coisas Tu és verdadeiro SENHOR
+
+                ******* 
+    C9  G/B Am  Am7/G
+Sonda-me Senhor, e me conhece
+    F9  C/E Dm  G/B
+Quebranta o meu coração
+    C9  G/B Am  Am7/G
+Transforma-me conforme a Tua Palavra
+    F   G/F Em7 Am  Am7/G
+E enche-me até que em mim, se ache só a Ti
+    F   G   F/A
+Então, Usa-me SENHOR
+G4
+Usa-me
+
+    C   G/B
+Como um farol que brilha a noite
+    Am  Am7/G
+Como ponte sobre as águas
+    F   C/G
+Como abrigo no deserto
+    F/A G/B
+Como flecha que acerta o alvo
+    C   G/B Am  Am7/G
+Eu quero ser usado da maneira que Te agrade
+    F   C/E
+Em qualquer hora e em qualquer lugar
+    F   G   Am9
+Eis aqui a minha vida, usa-me SENHOR
+F   G
+Usa-me
+
+C   Am
+Sonda-me , Quebranta-me
+    F9  Dm7
+Transforma-me , Enche-me    (2X)
+    F   G
+E usa-me
+    F/A G/B
+SENHOR
+
+
+    G/F F   G/F F
+Bem aventurado é o que está
+    G/C C   G/C C
+Firmado em tua casa
+    G/F F   Dm
+Aqueles que Te louvam
+    G   C
+Cujo coração está no nosso Deus
+
+
+    G/F F   G/F F
+Bem aventurado é o que tem
+    G/C C   G/C C
+Sede da justiça de Deus
+    G/F F   Dm
+Aqueles que são filhos da luz
+    G   C
+Cuja força vem do nosso Deus
+
+
+    F   G
+Que o Teu Reino venha sobre nós
+    F/A G/B
+Queremos Tua Glória sobre nós
+
+
+C   G
+Ouve, ó Deus
+    Am7 F
+Nossa oração Altíssimo
+C/E G
+Sara essa nação
+    Am7 F
+É o clamor da Igreja que te adora
+
+
+C   G/B
+Só Tu és Santo, só Tu és Santo
+Am7 F
+Só Tu és Santo SENHOR
+
+    E   B   C#m
+Jesus riscou a cédula
+    B   A   B   E   B
+Que era contra, contra nós
+    E   B   C#m
+Cravou-a na cruz, nos libertou
+    A   B   E
+Prevaleceu, Aleluia
+
+    A   B   C#m
+E despojando os principados
+    A   B   C#m
+E destronando as potestades
+    A   B   C#m
+Os expôs publicamente
+    A   B
+Em si mesmo triunfou
+    A   B
+Em si mesmo triunfou
+
+
+*******
+
+
+
+A  E  F#m  D
+
+    A   E
+Eu olho para cruz, e para cruz eu vou
+    F#m D
+Do Seu sofrer participar, da Sua obra vou cantar
+    A   E
+Meu Salvador, na cruz mostrou
+    F#m D
+O amor do Pai, o Justo Deus
+
+    A
+Pela cruz, me chamou
+    F#m
+Gentilmente me atraiu e eu
+    E
+Sem palavras, me aproximo
+    D   A
+Quebrantado por seu amor
+
+    A   E
+Imerecida vida, de graça recebi
+    F#m D
+Por sua cruz, da morte me livrou
+    A   E
+Trouxe-me a vida, e eu estava condenado
+    F#m D
+Mas agora pela cruz, eu fui reconciliado
+
+    Bm  A/C#    D
+Impressionante é o seu amor
+    Bm  A/C#    D   E
+Me redimiu e me mostrou, o quanto é Fiel
+
+    C9  G/B
+Graças eu te dou Pai
+    C   D   Em
+Pelo preço que pagou 
+    C7M D   C
+Sacrifício de amor, que me comprou
+    Am  G/B Dsus D7
+Ungido do Senhor
+
+G   G/B C9  G/B
+Pelos cravos em Tuas mãos 
+    C   D   Em
+Graças eu te dou ó meu Senhor
+    C7M D   C
+Lavou minha mente e coração , me deu perdão
+    Am  G/B Dsus D7
+Restaurou-me a comunhão
+
+    G   D/F#    Am  G/B C               
+Digno é o Senhor, Sobre o trono está
+    D   D/C G/B C   Am  Am/G    D/F#
+Soberano Criador, vou sempre te adorar
+    G   D/F#    Am  G/B C
+Elevo minhas mãos, ao Cristo que venceu
+    D   D/C G/B C   Dsus D7
+Cordeiro de Deus, morreu por mim
+
+    Am  G/B C
+Mas ressuscitou
+    Am  G/B Dsus D7 
+Digno é o Senhor
+
+
+*******
+
+
+    D9  F7M
+Cria em mim ó Deus um coração puro
+    D9  F7M
+Um espírito inabalável
+    D9  F7M D
+Restaura em mim a alegria da salvação
+
+    Bm7 C7M
+O Teu olhar me encontra aonde quer que eu vá
+    D   D/F#
+Te vejo ó Deus, em todo o lugar
+    Bm7 C7M D
+A mão de Jesus me alcança, em todo lugar
+    C7M
+D9  Bm7
+Nada me afasta da presença
+    C7M A9
+Daquele que me amou
+    D   Bm
+Hoje sou cheio da Tua alegria
+    C   G
+Jesus me encontrou
+    C   A
+Jesus me encontrou
+
+(G  Am7  Dsus  D  Em  D/F#  G  C/G  Dsus  D)
+
+G9  C/G Dsus    D   Em  D/F#
+Dá-me forças, ó     Senhor
+G   C/G Dsus    D
+Para te seguir quando difícil for
+G   C/G Dsus    D   Em
+Que eu já não mais queira revidar
+    D/F#    G   C/G G
+Quando um outro meus direitos usurpar
+
+Em7 Bm7
+Sei que o mal, que eu não quero
+C7M G   D/F#
+Muitas vezes vou fazer
+Em  Bm7 C9
+Mas o bem, que eu desejo, esse não...
+    G   C/G G   C/G
+Miserável homem que sou!
+    G   C/G G   C/G
+Mas dou glória a Cristo Jesus, Salvador
+
+G   Am7 Dsus    D   Em
+Tu somente tens o poder
+    D/F#    G   C/G Dsus    D
+E por isso eu te clamo: vem me socorrer
+G   Am7 Dsus    D   Em  D/F#
+Tu conheces o meu coração
+G   C/G G   D/F#
+Como quero te seguir, ó dá-me direção
+Em  Bm7
+Pois o mal que eu não quero
+C   G   D/F#
+Muitas vezes vou fazer
+Em  Bm7 C9
+Mas o bem, que eu desejo, esse não...
+    G   C/G G   C/G
+Quão grandioso foi teu amor, Salvador
+    G   C/G G   C/G
+Ao morreres por mim pecador
+    G   C/G G
+Quão grandioso!
+
+
+
+
+
+
+
+
+
+Dm  F   C   Gm  Dm
+A tua graça é oque me sustenta, é bem melhor do que a vida
+    F   C   Gm  Dm
+O teu amor é o que me alimenta, o meu pão minha comida
+    F   C   Gm  Dm
+A esperança leva-me a confiar, e em teus braços descansar
+    F   C   Gm  Bb C F
+Justificado tenha salvação, e total libertação
+
+
+    C   Gm  Bb  F
+Por isso Jesus tu é minha canção, o centro de todas as coisas
+    C   Gm  Bb  F
+É o Senhor do meu coração, o centro de todas as coisas
+    C   Gm  Bb  F
+Minha alegria e inspiração, o centro de todas as coisas
+    C   Gm
+Por isso me entrego inteiro a Ti
+Bb  Dm  F  C  Gm
+Me entrego a Ti Jesus
+    Dm  F  C  Gm
+Me entrego a Ti Jesus   (Bb F)
+
+
+Dm  F   C   Gm   Dm
+Entrego a Ti Senhor o meu caminhar, Jesus Tu és a minha força
+    F   C   Gm  Dm
+Tu é o sopro do meu respirar, e eu corro assim como a corça
+    F   C   Gm  Dm
+Procuro as águas que estão a jorrar, jorram fontes de água viva
+    F   C   Gm  Bb  C
+Que fazem todo o meu ser cantar, e o que eu quero é te adorar
+    F
+Te adorar
+
+
+Bb  C   Dm  C   Gm
+Todo poder te foi dado nos céus e na terra
+Bb  C   Dm  C   Bb  C   F
+Autoridade e domínio estão em tuas mãos, em tuas mãos
+
+C9
+Tu fizeste os montes e o mar
+    Em  G   F
+Criaste  o universo e também a mim
+Dm7     F   Gsus    G7
+Voz que fez do nada o mundo aparecer
+Dm7     F   Gsus    G7
+E agora vem meu coração encher
+F   G   C
+Meu Rei Criador
+
+(C F C F)
+
+C   C/F     C   C/F
+Tu fizeste os vales e o céu
+    C   C/F
+Meus olhos viram o Teu grande amor 
+    Em  G   F
+Mostrado a mim
+Dm  F   Gsus    G7
+Ajustaste o amanhecer e os astros também
+Dm7     F   Gsus    G7
+Pelo nome cada um conheces bem
+F   G   C
+Meu Rei e Criador
+
+Am  F   C   G   Dm  Dm/E    F
+Quem sou eu, que te preocupas tanto assim
+Am  F   C   G   Dm  F
+Quem sou eu, que tanto amor tens dado a mim
+    G   C
+Meu Rei Criador
+
+(C F C F  C F Am G F)
+
+C
+Tu fizeste as trevas e a luz
+C   Em G F
+Sol e lua para a terra iluminar
+Dm7     F   Gsus    G7
+As mãos que estenderam todo o céu sem fim
+Dm  F   Gsus    G7
+São as mesmas que hoje vem cuidar de mim
+F   G   C
+Meu Rei Criador
+
+Am  F   C   G   Dm  (Am G/B C Am)
+Quem sou eu, que te preocupas tanto assim
+Am  F   C   G   Dm  F
+Quem sou eu, que tanto amor tens dado a mim
+Am  F   C   G   Dm  (Am G/B C Dm)
+Quem sou eu, que te preocupas tanto assim
+Am  F   C   G   Dm  (Dm/E) F
+Quem sou eu, que tanto amor tens dado a mim
+    G   C
+Meu Rei Criador
+
+(C F C F  C F Am G F)
+C   G/B
+Conheci um mundo mal
+Am7     Em7
+E com ele seus ardis
+F   C/E
+Me arrastei no lamaçal
+Dm  Dm/C G
+Tudo isso porque eu quis
+C   G/B
+Saber mais que qualquer um
+Am7     Em7
+Construir algum amor
+F   C/E
+Onde a paz pudesse ser
+Dm  Dm/C    G
+A verdade pra eu ver
+
+
+F   G/F     C
+Mas Jesus Cristo veio e me achou
+G/B     Am7 Am7/G
+Assim tão sujo
+F   G/F     C
+E numa cruz por mim derramou
+G/B Am7 Am7/G
+Sangue tão puro
+D9  Fm6 C
+Foi assim que me salvou
+
+
+C   G/B
+Eu conheço agora sim
+Am7 Em7
+A clareza de Jesus
+F   C/E
+Foi das trevas que eu vim
+Dm  Dm/C    G
+Encontrei-me com a luz
+C   G/B
+Hoje quero sim saber
+Am7 Em7
+Do meu mestre Salvador
+F   C/E
+Quero dar-lhe meu louvor
+Dm  Dm/C    G
+Eu só N’Ele posso crer
+
+    G9  C7M Bm7
+O Senhor é elevado entre os louvores
+    C7M Bm7 Am7
+De um povo que proclama o seu poder
+    D9  D/C Bm7 C7M
+Entre mãos que se erguem como gratidão e amor
+    Am7 Am/G    Dsus    D7
+Entre vidas que se prostram para o seu louvor
+ 
+    G9  C7M Bm7
+Procurando tua vontade realizar
+    C7M Bm7 Am7
+Seu poder em nossas vidas manifestar
+    D9  D/C Bm7 C7M
+Pra que o mundo creia e venha te adorar, Senhor
+    F9  C   Dsus    D7
+Reconhecendo que só Tu és Deus
+    G9  Am7 Bm7 Am  Am/G    Dsus    D7
+Glória e Honra, majestade, Digno de louvor
+    G9  Am7 Bm7 Am  D9  G9
+Glória e Honra, majestade, Digno de louvor
+Eb  F   G
+ A mém
+
+*******
+
+E   A   G#  C#m
+Tens na tua vida mil problemas a enfrentar?
+E7  A   Eº  A/B
+Tens desconfiança, já perdeste a esperança?
+E   A   G#7 C#m E7/B
+Sem nenhum amigo que te ajude a caminhar?
+A   C#/G#   F#m7    E/B A/B E   (F#m7E7/G#)
+Cristo te estende sua forte mão
+
+A   A#º
+Sempre perto está, sempre te ouvirá
+E/B G#7 C#m C#m7
+Cristo   o   Senhor
+F#7 F#9
+Não te deixará, nunca falhará
+F#7m    B7
+Seu grande amor
+E   A   G#  G#7 C#m E7/B
+Lembra que nas horas de tristeza e aflição
+A   C#/G#   F#m7    E/B A/B E   (F#m7E7/G#)
+Cristo te estende sua forte mão
+
+E   A   G#  C#m
+Tens só desespero, amarguras e temor?
+E7  A   Eº  A/B
+Andas inseguro, temeroso do futuro?
+E   A   G#7 C#m E7/B
+Sentes o cansaço de lutar em meio a dor?
+A   C#/G#   F#m7    E/B A/B E   (F#m7E7/G#)
+Cristo te estende sua forte mão
+
+    D9  Bm7 Em  A
+Oh quão cego eu andei e perdido vaguei
+    Em7 Asus    A7  D
+Longe, longe do meu Salvador
+    G   Gm
+Mas da glória desceu
+    F#m Bm7
+E seu sangue verteu
+    Em  Asus    A7  D   G/A
+Pra salvar um tão pobre pecador
+
+
+    D   D/C Em  A
+Foi na cruz, foi na cruz que um dia eu vi
+    Em  Asus    A7  D   D7
+Meus pecados castigados em Jesus
+    G   Em  F#m Bm7
+Foi ali, pela fé, que meus olhos abri
+    Em  Asus    A7  D   G/A
+E agora me alegro em sua luz
+
+
+    D9  Bm7 Em  A
+Eu ouvia falar dessa graça sem par
+    Em7 Asus7   A7  D
+Que do céu trouxe o nosso Jesus
+    G   Gm
+Mas eu surdo me fiz
+    F#m Bm7
+converter-me não quis
+    Em  Asus    A7  D   G/A
+Ao Senhor que por mim morreu na cruz
+
+
+    D9  Bm7 Em  A
+Mas um dia senti meus pecados e vi
+    Em7 Asus    A7  D
+Sobre mim a espada da lei
+    G   Gm
+Apressado fugi
+    F#m Bm7
+em Jesus me escondi
+    Em  Asus    A7  D   G/A
+E abrigo seguro n’Ele achei
+
+
+Intro: F   C/E   Dm7  C/E   F  C/E   Dm7   F/G   C
+
+C   C/E F   C/E
+Rei do Universo te dou meu louvor
+Dm7 Em7 F7M G
+Com tantas bênçãos me cercas, Senhor
+F   C/E Dm7 Am7
+Só Tu és a fonte de alegria e prazer
+F   C/E Dm7 F/G C
+Melhor que a própria vida é a Ti conhecer
+
+C   C/E F   C/E
+Paz e família, abrigo e luz
+Dm7 Em7 F7M G
+Minhas necessidades supres todas em Jesus
+F   C/E Dm7 Am7
+Mas nem o ouro e a prata podem satisfazer
+F   C/E Dm7 F/G C
+A sede da minha alma é a Ti pertencer     A7
+
+D   D/F#    G   D/F#
+Planos e sonhos Tu tens para mim
+Em7 F#m7    G   A
+E eu maravilhado digo “eis-me aqui”
+G   D/F#    Em7 Bm7
+Quero agradar-te e cumprir teu querer
+G   D/F#    Em7 G/A D
+Caminhando em graça vou o be de  cer    B7
+
+E   E/G#    A   E/G#
+Em minha jornada intimamente te amar
+F#m7    G#m7    A   B
+Para que na glória, quando o dia chegar
+A   E/G#    F#m7    C#m7
+Ao contemplar teu rosto eu venha a reconhecer
+A   E/G#    F#m7    A/B E
+O olhar tão doce que amou o meu ser
+
+    F9  Am7
+Ó dá-me tua mão, Senhor
+    Gm7 Csus    C7
+Pois sei que fraco eu sou
+    F9  Am7
+No mundo há tristeza e dor
+    Gm7 Csus    C7
+Vencer contigo eu vou
+
+Bb  C/Bb    F   Am7
+Vem Senhor me guiar
+Bb  C   F
+Minha vida orientar
+Bb  Dm  Dm/C    Gm7
+Pois quero viver só parar Ti
+    Csus    C7
+Meu Deus meu Senhor
+
+    F9  Am7
+Que paz eu sinto quando em Ti
+    Gm7 Csus    C7
+Descanso ó Pai de amor
+    F9  Am7
+Saber que tudo vais fazer
+    Gm7 Csus    C7
+E perto estás de mim            F
+
+
+
+Intro: A9  D9  A9  D9
+
+    A9  Bm7
+Aquele que habita no esconderijo do Altíssimo
+    C#m7    D9
+E descansa na sombra do Onipotente
+
+
+    A9
+Diz ao Senhor:
+A9  E   F°
+Meu refúgio, fortaleza
+F#m F#m/E   D   E
+O Deus em quem eu sempre confio
+A9  E   F°  F#m F#m/E   D
+Nenhum laço, nem veneno ou flecha vão me atingir
+E   A9  D9  A9  D9
+Pois eu me escondo em ti (2ª vez: Pois eu me escondo)
+
+
+A9
+E Tu me cobrirás com Tuas penas
+Bm7 C#m7
+Sob Tuas asas estarei seguro
+D9
+A Tua fidelidade é o meu escudo
+
+
+F#m F#m/E   D9
+Mil podem cair ao meu lado e dez mil à minha direita
+E
+Pelo Senhor eu ficarei em pé
+F#m F#m/E   D9
+E praga nenhuma nem mal chegarão à minha tenda
+E
+O meu Senhor é minha salvação
+
+
+
+Intro: E A
+
+    E
+Que sejas meu universo
+    A   E
+Não quero dar-te só um pouco do meu tempo
+    F#m F#m7    B
+Não quero dar-te um dia apenas da semana
+    E
+Que sejas meu universo
+    A   E
+Não quero dar-te as palavras como gotas
+    F#m F#m/A   B
+Quero um dilúvio de louvores em minha boca
+
+    E
+Que sejas meu universo
+    A   E
+Que sejas tudo o que sinto e o que penso
+    A   F#m
+Que de manhã seja o primeiro alimento
+    F#m/A   B
+E a luz em minha janela
+    E
+Que sejas meu universo
+    A   E
+Que enchas cada um dos meus pensamentos
+    A   F#m
+Que a tua presença e o teu poder sejam o meu sustento
+    F#m/A   B
+Jesus, este é o meu desejo
+
+    E
+Que sejas meu universo
+    A   E
+Não quero dar-te só uma parte dos meus anos
+    F#m F#m/A   B
+Te quero dono do meu tempo e dos meus planos
+    E
+Que sejas meu universo
+    A   E
+Não quero a minha vontade, quero agradar-te
+    F#m F#m/A   B
+E cada sonho que há em mim quero entregar-te
+
+Intro: Bb F Gm x2
+
+Bb      F           Gm
+Um menino nasceu
+                Bb     F        Gm
+Como um filho se nos deu
+                    Bb
+Ele é o próprio Deus
+   F        Gm
+E vive em mim
+                    Bb
+Debaixo de suas asas
+        F           Gm
+Eu me escondi
+
+Eb          Gm      Cm
+E o seu nome é maravilhoso
+Eb            Gm            F
+ Glória ao príncipe da paz
+
+
+    Gm                  Dm
+O céu começa a se abrir
+            Gm                  Eb
+Toda a terra se dobrou a Ti
+    Bb/D                Dm
+Cristo, rei dos reis
+                    Eb
+Veio nos buscar
+ Gm                 Dm
+Leva-nos em tuas mãos
+        Gm              Eb
+Pelas portas da cidade
+ Bb/D               Dm
+Na nova Jerusalém
+                    Eb
+Tua noiva vai entrar
+
+Gm  Bb  Dm  F
+
+D                       A/C#            G/B         Gm/A#
+Da multidão dos que creram era só um o coração
+            D/A             Adim            E/G#    Gm6
+E a alma, uma somente, uma  semen-te
+D/F#                Fdim    Em7                 G/A A
+Somente uma esperança    brotando dentro da gente
+
+
+ D                      A/C#
+Nosso era o pão cada dia,
+                G/B             Gm/A#
+Nosso era o vinho, santa folia
+D/A                 Adim                E/G# Gm6
+ O que se parte reparte a própria  vi      da
+
+
+D/F#                Fdim    Em7                 G/A A  D Dsus D 
+Galho ligado à parreira,  vida em comum verdadeira
+
+
+F#m7 Bm  G          D/F#    Esus4  E            Asus A/G
+ Sempre grande poder,   curas, milagres de Deus
+F#m7 Bm  G          D/F#    Em7             E           C Asus A
+ Sempre proclamação   Cristo, o Senhor, ressurgiu
+
+
+D                       A/C#            G/B         Gm/A#
+Da multidão dos que creram era só um o coração
+        D/A                 Adim            E/G#    Gm6
+E a alma, muita alegria, singela a  vi       da
+D/F#            Fdim  D/F#                  Fdim
+Na simpatia de todos nasce a igreja de novo
+Em7                 G/A                 Dsus D
+Povo de Deus, sal e luz pra todos os  povos
+
+
+D           D/F#  G         D           Bm          A7
+Maravilhosa graça que     perdido me encontrou
+D       D/F#        G   D       Bm          A7          D
+Estando cego pude ver     Cristo me resgatou
+D       D/F#   G    D       Bm          A7
+Quando a graça me tocou    do medo me livrou
+ D    D/F#          G       D           Bm          A7     D
+Quão preciosa é pra mim      a graça do senhor
+
+            G               D/F#                G
+Liberto eu fui de uma prisão......meu salvador
+            A7
+me resgatou
+        G           Bm                  Em    A7        D
+Misericórdia e perdão     eterno amor e redenção
+
+D       D/F#            G          D            Bm
+Deus prometeu o  melhor pra mim....  e nele
+        A7     D        D/F#   G    D       Bm      A7       D
+esperarei     escudo e força ele será    enquanto eu viver
+
+            G               D/F#                G
+Liberto eu fui de uma prisão......meu salvador
+                A7
+me resgatou
+        G           Bm                  Em  A7     D  (2x)
+Misericórdia e perdão     eterno amor e redenção       
+
+D       D/F#        G       D            Bm
+E Se o meu mundo se acabar...     . e o sol não
+        A7              D      D/F#         G           D
+mais brilhar           o Deus que um dia me chamou
+Bm          A           D     
+Será pra sempre meu       
+Bm  Em          A7  D
+     será pra sempre meu
+Bm      Em      A       D        
+     será pra sempre meu
+
+    C9  G/B
+Se Deus fizer, Ele é Deus
+    Am7 Am/G
+Se nao fizer, Ele é Deus
+    F7M Em7
+Se a porta abrir, Ele é Deus
+    Dm7 Gsus    G7
+Mas se fechar, continua sendo Deus
+
+    C9  G/B
+Se a doença vier, Ele é Deus
+    Am7 Am/G
+Se curado eu for, Ele é Deus 
+    F7M Em7
+Se tudo der certo, Ele é Deus
+    Dm7 Gsus    G7
+Mas se não der continua sendo Deus
+
+    C9  G/B
+A minha fé não está firmada
+    Am7 Gsus
+Nas coisas que podes fazer 
+    C9  Am7 Gsus    G7
+Eu aprendi a te adorar pelo que És
+
+Dm7 G9
+Dele vem o sim e o amém
+    C   G/B Am7
+Somente Dele e mais ninguém
+    F7M G   C
+A Deus seja o louvor 
+
+    F7M C9
+Eu não o adoro só porque Ele faz
+    F7M C9
+Eu o adoro pelo que Ele é
+F7M C   Dm7 Gsus    G7
+Haja o que houver, sempre será Deus
+
+    D9  A/C#
+Se Deus fizer, Ele é Deus
+    Bm7 Bm/A
+Se nao fizer, Ele é Deus
+    G7M F#m7
+Se a porta abrir, Ele é Deus
+    Em7 Asus    A7
+Mas se fechar, continua sendo Deus
+
+
+
+
+
+
+
+
+
+
+
+
+
+    D9  A/C#
+Se a doença vier, Ele é Deus
+    Bm7 Bm/A
+Se curado eu for, Ele é Deus
+    G7M F#m7
+Se tudo der certo, Ele é Deus
+    Em7 Asus    A7
+Mas se não der, continua sendo Deus
+
+
+
+
+
+
+
+
+Intro: C    G/C     F/C     F  
+  
+C                           G/C                  F/C                      F  
+A Ti  eu vou clamar, pois tudo vem de Ti, E tudo está em Ti  
+C                      G/C                      F/C           F          
+Por Ti vou caminhar, Tu és a direção, o sol a me guiar  
+C/E Dm7             G/B             C     C/E       F         
+Tudo pode passar, o teu amor jamais me deixará  
+C/E  Dm7               G/B                C          C/E            F       G/F  
+Sempre há de existir, novo amanhã, preparado pra mim  
+                         F      G  
+Preparado pra mim  
+                    
+  
+  
+          C                         G  
+Eu me rendo aos Teus pés  
+                Am                  F  
+És tudo que eu preciso pra viver  
+            C                       G  
+Eu me lanço aos Teus braços  
+              Am                    F  
+Onde encontro, meu refugio  
+  
+  
+    C   G/B         Am7      F  
+Jesus,              Eis-me aqui  
+    C   G/B         Am7      F  
+Jesus,              Eis-me aqui  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+intro: Am9 Am/G F7M Bº E7
+
+    Am
+Ensina-me amar
+    Am/G    F   C/E Dm
+Mesmo quando só há ódio ao meu redor
+G
+Ensina-me a dar
+    Bº  E7  Am  Gm  Gm/C
+Mesmo quando não há nada a receber
+F
+Ensina-me a aceitar
+    G/F Em  Asus    A7
+Tudo o que tens preparado para mim
+    Dm  G
+Confiando que tudo está nas Tuas mãos
+    Dm  G   C   E
+E que tudo vem de ti, Jesus
+
+Am
+Ensina-me a adorar  
+    Am/G    F   C/E Dm
+Mesmo quando há pranto em meu coração
+G
+Também a perdoar
+    Bº  E7  Am  Gm  Gm/C
+Como a mim tens revelado o Teu Perdão
+F   Esus    E
+E que eu possa ter mais sede de te conhecer melhor
+    Am  Am/G    F
+Cada dia mais vontade de estar ao Teu redor
+    C   Dm
+Escutando o Teu falar, sentindo Teu amor
+F   C/E Dm  C   G   C
+Vivendo    jun to a Ti, Senhor
+
+
+
+
+
+
+
+
+
+
+
+[Intro] D  C  G  D
+
+D           G          
+Num dia lindo almejo eu encontrar 
+A                               G      D
+A eterna glória que prometida está  
+D                           G/D
+Gozo e alegria eu posso então eu sentir  
+A9                          G   D/F#  Em7  D
+Pois Jesus Cristo já está         por vir 
+
+    D           G/D                         A9
+Jesus virá, outra vez aqui Jesus virá    
+                            G       D
+Jesus virá, mais outra vez aqui 
+    D               G/D                             A7    
+E todos juntos, em um só louvor, cantemos
+                                G  D/F#  Em7  D
+Cantemos todos, Ele é o nosso     Senhor 
+
+( G  F#m  F  Em  A )
+
+D                                   G           
+Ele veio ao mundo pra ser mártir da paz  
+A                           G       D
+Ele foi tentado e não pecou jamais 
+    D                   G/D
+A Sua vida foi exemplo de amor  
+A9                              G  D/F#  Em7  D
+Cantemos Juntos , Ele é o nosso    Senhor
+
+    D           G/D                         A9
+Jesus virá, outra vez aqui Jesus virá    
+                            G       D
+Jesus virá, mais outra vez aqui 
+    D               G/D                             A7    
+E todos juntos, em um só louvor, cantemos
+                                G   D/F#  Em7   D
+Cantemos todos, Ele é o nosso        Senhor
+
+B       E               C#m       A                 B
+Oh aleluia, ele voltará, oh aleluia para me levar 
+        E               C#m       A                 B
+Oh aleluia, ele voltará, oh aleluia para me levar 
+
+    E           A/E                             B
+Jesus virá, outra vez aqui Jesus virá    
+            A       E
+Jesus virá, mais outra vez aqui 
+    E               A                               B   
+E todos juntos, em um só louvor, cantemos
+            A   E/G#  F#m  E
+Cantemos todos, Ele é o nosso    Senhor
+
+[Final] A  G#m  G  F#m  E
+
+
+
+[Intro] C  Bb  F  C
+
+C   F          
+Num dia lindo almejo eu encontrar 
+G                           F       C
+A eterna glória que prometida está  
+C                               F/C
+Gozo e alegria eu posso então eu sentir  
+G9                          F  C/E  Dm7  C
+Pois Jesus Cristo já está         por  vir 
+
+    C           F/C                         G9
+Jesus virá, outra vez aqui Jesus virá    
+                            F       C
+Jesus virá, mais outra vez aqui 
+    C               F/C                             G7    
+E todos juntos, em um só louvor, cantemos
+                                F   C/E  Dm7  C
+Cantemos todos, Ele é o nosso     Senhor 
+
+( F  Em  D#  Dm  G )
+
+C                                   F           
+Ele veio ao mundo pra ser mártir da paz  
+G                           F           C
+Ele foi tentado e não pecou jamais 
+    C                       F/C
+A Sua vida foi exemplo de amor  
+G9                              F   C/E  Dm7  C
+Cantemos juntos , Ele é o nosso     Senhor
+
+   C            F/C                         G9
+Jesus virá, outra vez aqui Jesus virá    
+                            F       C
+Jesus virá, mais outra vez aqui 
+    C               F/C                             G7    
+E todos juntos, em um só louvor Cantemos
+                                F  C/E  Dm7  C
+Cantemos todos, Ele é o nosso    Senhor
+
+A      D                Bm       G                  A
+Oh aleluia, ele voltará, oh aleluia para me levar 
+        D               Bm       G                  A
+Oh aleluia, ele voltará, oh aleluia para me levar 
+
+    D           G/D                         A
+Jesus virá, outra vez aqui Jesus virá    
+                            G       D
+Jesus virá, mais outra vez aqui 
+    D               G                               A   
+E todos juntos, em um só louvor, cantemos
+                                G  D/F#  Em  D
+Cantemos todos, Ele é o nosso    Senhor
+
+[Final] G  F#m  F  Em  D
+
+C7M             C7
+O mar azul, o ar sem cor 
+                F 
+Tudo o que o Senhor fez é bom 
+                Fm 
+Tudo o que o Senhor fez é bom 
+C7M                     C7 
+O frio da noite, o sol da manhã 
+                        F 
+Tudo o que o Senhor fez é bom 
+                            Fm 
+Tudo o que o Senhor fez é bom 
+
+    C7M F 
+O Senhor poderoso e forte 
+    C7M             F 
+Me encontrou, substância informe 
+    C7M             F 
+Esse amor mais forte que a morte 
+Dm Em F G 
+Me salvou 
+C7M 
+Ele me amou primeiro 
+C7 
+Ele me amou primeiro 
+    F 
+E eu o amarei para sempre 
+ Fm                             (C C7M ) 
+E eu o amarei para sempre 
+
+             F              G 
+Ele disse haja noite e dia 
+        Am7 Em 
+Ele disse haja água e céu 
+    F       G   D 
+Ele disse haja linda natureza 
+            F           G           C  C7M 
+Ele fez o sol, a lua e as estrelas 
+
+            F               G 
+Ele disse nadem, voem, andem 
+            Am7             Em 
+Ele me criou do pó da terra 
+                F           G               D 
+Ele viu que tudo ficou bom e depois foi descansar 
+            F           G       C 
+Pra me ensinar com Ele andar 
+
+C7M 
+Ele me amou primeiro 
+C7 
+Ele me amou primeiro 
+    F 
+E eu o amarei para sempre 
+ Fm                              
+E eu o amarei para sempre 
+C7M             C7
+O mar azul, o ar sem cor 
+                F 
+Tudo o que o Senhor fez é bom 
+                Fm      C
+Tudo o que o Senhor fez é bom 
+(intro) F   Bb   Dm   C
+
+                F                  C/E             Dm7
+Quem sou eu? pra que o Deus de toda terra
+            C                  Bb               Am                    Gm      C
+Se preocupe com meu nome  se preocupe com minha dor
+                F                     C/E           Dm7
+Quem sou eu?  pra que a estrela da manhã
+   F/C       Bb                Am         Bb    C
+Ilumine o caminho deste duro coração
+
+         Bb                    C             Dm7        C/E
+Não apenas por quem sou mas porque tu és fiel
+             Bb                  C/E                Bb                 C    
+Nem por nada do que eu faça  mas por tudo o que Tu és
+
+
+
+
+F                  C/E            Dm7              F/C               Bb
+Eu sou um vento passageiro que aparece e vai embora
+          Gm            Bb       C/E                   F
+Como onda no oceano, assim como o vapor
+               C/E                     Dm7               C                        Bb
+E ainda escutas quando eu chamo me sustentas quando eu clamo
+      Gm                     Bb      C               F
+Me dizendo quem eu sou          eu sou Teu
+
+
+
+ F   Bb   Dm   C  
+
+
+                F              C/E           Dm7
+Quem sou eu? pra ser visto com amor
+                 F/C         Bb              Am        Bb        C
+Mesmo em meio ao pecado Tu me fazes levantar
+                F                 C/E                    Dm7
+Quem sou eu? pra que a voz que acalma o mar
+    F/C                 Bb               Am                Bb    C/A
+E acaba com a tormenta que se faz dentro de mim
+         Bb                    C              Dm7        C/E
+Não apenas por quem sou mas porque tu és fiel
+            Bb                   C/E                Bb                 C    F
+Nem por nada do que eu faça  mas por tudo o que Tu és
+
+
+F   Bb   Dm   C  (2x)
+
+
+</pre>
+</body>
+</html>

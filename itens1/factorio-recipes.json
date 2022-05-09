@@ -1,0 +1,847 @@
+[{
+  "name": "science-pack-1",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }],
+  "results": [{ "name": "science-pack-1", "type": "item" }]
+}, {
+  "name": "gun-turret",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "copper-plate", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "gun-turret", "type": "item" }]
+}, {
+  "name": "submachine-gun",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "copper-plate", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "submachine-gun", "type": "item" }]
+}, {
+  "name": "rocket-launcher",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "rocket-launcher", "type": "item" }]
+}, {
+  "name": "chemical-plant",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "pipe", "type": "item" }],
+  "results": [{ "name": "chemical-plant", "type": "item" }]
+}, {
+  "name": "heavy-armor",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-plate", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "heavy-armor", "type": "item" }]
+}, {
+  "name": "logistic-chest-active-provider",
+  "type": "recipe",
+  "ingredients": [{ "name": "smart-chest", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "logistic-chest-active-provider", "type": "item" }]
+}, {
+  "name": "player-port",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "player-port", "type": "item" }]
+}, {
+  "name": "pumpjack",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "pipe", "type": "item" }],
+  "results": [{ "name": "pumpjack", "type": "item" }]
+}, {
+  "name": "combat-shotgun",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "copper-plate", "type": "item" }, { "name": "wood", "type": "item" }],
+  "results": [{ "name": "combat-shotgun", "type": "item" }]
+}, {
+  "name": "smart-chest",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-chest", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "smart-chest", "type": "item" }]
+}, {
+  "name": "roboport",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "roboport", "type": "item" }]
+}, {
+  "name": "assembling-machine-3",
+  "type": "recipe",
+  "ingredients": [{ "name": "speed-module", "type": "item" }, { "name": "assembling-machine-2", "type": "item" }],
+  "results": [{ "name": "assembling-machine-3", "type": "item" }]
+}, {
+  "name": "electronic-circuit",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "copper-cable", "type": "item" }],
+  "results": [{ "name": "electronic-circuit", "type": "item" }]
+}, {
+  "name": "empty-barrel",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "empty-barrel", "type": "item" }]
+}, {
+  "name": "stone-brick",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone", "type": "item" }],
+  "results": [{ "name": "stone-brick", "type": "item" }]
+}, {
+  "name": "processing-unit",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "sulfuric-acid", "type": "fluid" }],
+  "results": [{ "name": "processing-unit", "type": "item" }]
+}, {
+  "name": "basic-electric-discharge-defense-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "processing-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "laser-turret", "type": "item" }],
+  "results": [{ "name": "basic-electric-discharge-defense-equipment", "type": "item" }]
+}, {
+  "name": "cannon-shell",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "plastic-bar", "type": "item" }, { "name": "explosives", "type": "item" }],
+  "results": [{ "name": "cannon-shell", "type": "item" }]
+}, {
+  "name": "poison-capsule",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "coal", "type": "item" }],
+  "results": [{ "name": "poison-capsule", "type": "item" }]
+}, {
+  "name": "solid-fuel-from-light-oil",
+  "type": "recipe",
+  "ingredients": [{ "name": "light-oil", "type": "fluid" }],
+  "results": [{ "name": "solid-fuel", "type": "item" }]
+}, {
+  "name": "steam-engine",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "pipe", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "steam-engine", "type": "item" }]
+}, {
+  "name": "wooden-chest",
+  "type": "recipe",
+  "ingredients": [{ "name": "wood", "type": "item" }],
+  "results": [{ "name": "wooden-chest", "type": "item" }]
+}, {
+  "name": "energy-shield-mk2-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "energy-shield-equipment", "type": "item" }, { "name": "processing-unit", "type": "item" }],
+  "results": [{ "name": "energy-shield-mk2-equipment", "type": "item" }]
+}, {
+  "name": "express-splitter",
+  "type": "recipe",
+  "ingredients": [{ "name": "fast-splitter", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "lubricant", "type": "fluid" }],
+  "results": [{ "name": "express-splitter", "type": "item" }]
+}, {
+  "name": "rocket-control-unit",
+  "type": "recipe",
+  "ingredients": [{ "name": "processing-unit", "type": "item" }, { "name": "speed-module", "type": "item" }],
+  "results": [{ "name": "rocket-control-unit", "type": "item" }]
+}, {
+  "name": "shotgun",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "copper-plate", "type": "item" }, { "name": "wood", "type": "item" }],
+  "results": [{ "name": "shotgun", "type": "item" }]
+}, {
+  "name": "train-stop",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-plate", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "train-stop", "type": "item" }]
+}, {
+  "name": "long-handed-inserter",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "iron-plate", "type": "item" }, { "name": "basic-inserter", "type": "item" }],
+  "results": [{ "name": "long-handed-inserter", "type": "item" }]
+}, {
+  "name": "offshore-pump",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "pipe", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }],
+  "results": [{ "name": "offshore-pump", "type": "item" }]
+}, {
+  "name": "light-oil-cracking",
+  "type": "recipe",
+  "ingredients": [{ "name": "water", "type": "fluid" }, { "name": "light-oil", "type": "fluid" }],
+  "results": [{ "name": "petroleum-gas", "type": "fluid" }]
+}, {
+  "name": "lubricant",
+  "type": "recipe",
+  "ingredients": [{ "name": "heavy-oil", "type": "fluid" }],
+  "results": [{ "name": "lubricant", "type": "fluid" }]
+}, {
+  "name": "solar-panel-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "solar-panel", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "solar-panel-equipment", "type": "item" }]
+}, {
+  "name": "fast-transport-belt",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "basic-transport-belt", "type": "item" }],
+  "results": [{ "name": "fast-transport-belt", "type": "item" }]
+}, {
+  "name": "battery-mk2-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "battery-equipment", "type": "item" }, { "name": "processing-unit", "type": "item" }],
+  "results": [{ "name": "battery-mk2-equipment", "type": "item" }]
+}, {
+  "name": "basic-exoskeleton-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "processing-unit", "type": "item" }, { "name": "electric-engine-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "basic-exoskeleton-equipment", "type": "item" }]
+}, {
+  "name": "assembling-machine-2",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "assembling-machine-1", "type": "item" }],
+  "results": [{ "name": "assembling-machine-2", "type": "item" }]
+}, {
+  "name": "night-vision-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "night-vision-equipment", "type": "item" }]
+}, {
+  "name": "satellite",
+  "type": "recipe",
+  "ingredients": [{ "name": "low-density-structure", "type": "item" }, { "name": "solar-panel", "type": "item" }, { "name": "basic-accumulator", "type": "item" }, { "name": "radar", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "rocket-fuel", "type": "item" }],
+  "results": [{ "name": "satellite", "type": "item" }]
+}, {
+  "name": "fast-inserter",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-plate", "type": "item" }, { "name": "basic-inserter", "type": "item" }],
+  "results": [{ "name": "fast-inserter", "type": "item" }]
+}, {
+  "name": "small-electric-pole",
+  "type": "recipe",
+  "ingredients": [{ "name": "wood", "type": "item" }, { "name": "copper-cable", "type": "item" }],
+  "results": [{ "name": "small-electric-pole", "type": "item" }]
+}, {
+  "name": "substation",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "copper-plate", "type": "item" }],
+  "results": [{ "name": "substation", "type": "item" }]
+}, {
+  "name": "logistic-chest-storage",
+  "type": "recipe",
+  "ingredients": [{ "name": "smart-chest", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "logistic-chest-storage", "type": "item" }]
+}, {
+  "name": "basic-grenade",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "coal", "type": "item" }],
+  "results": [{ "name": "basic-grenade", "type": "item" }]
+}, {
+  "name": "small-plane",
+  "type": "recipe",
+  "ingredients": [{ "name": "plastic-bar", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "electric-engine-unit", "type": "item" }, { "name": "battery", "type": "item" }],
+  "results": [{ "name": "small-plane", "type": "item" }]
+}, {
+  "name": "shotgun-shell",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-plate", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "shotgun-shell", "type": "item" }]
+}, {
+  "name": "gate",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone-wall", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "gate", "type": "item" }]
+}, {
+  "name": "steel-furnace",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "stone-brick", "type": "item" }],
+  "results": [{ "name": "steel-furnace", "type": "item" }]
+}, {
+  "name": "boiler",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone-furnace", "type": "item" }, { "name": "pipe", "type": "item" }],
+  "results": [{ "name": "boiler", "type": "item" }]
+}, {
+  "name": "solar-panel",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "copper-plate", "type": "item" }],
+  "results": [{ "name": "solar-panel", "type": "item" }]
+}, {
+  "name": "steel-plate",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "steel-plate", "type": "item" }]
+}, {
+  "name": "railgun-dart",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "railgun-dart", "type": "item" }]
+}, {
+  "name": "defender-capsule",
+  "type": "recipe",
+  "ingredients": [{ "name": "piercing-bullet-magazine", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }],
+  "results": [{ "name": "defender-capsule", "type": "item" }]
+}, {
+  "name": "piercing-bullet-magazine",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-plate", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "piercing-bullet-magazine", "type": "item" }]
+}, {
+  "name": "copper-cable",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-plate", "type": "item" }],
+  "results": [{ "name": "copper-cable", "type": "item" }]
+}, {
+  "name": "basic-electric-discharge-defense-remote",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "basic-electric-discharge-defense-remote", "type": "item" }]
+}, {
+  "name": "productivity-module",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "productivity-module", "type": "item" }]
+}, {
+  "name": "fill-crude-oil-barrel",
+  "type": "recipe",
+  "ingredients": [{ "name": "crude-oil", "type": "fluid" }, { "name": "empty-barrel", "type": "item" }],
+  "results": [{ "name": "crude-oil-barrel", "type": "item" }]
+}, {
+  "name": "construction-robot",
+  "type": "recipe",
+  "ingredients": [{ "name": "flying-robot-frame", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "construction-robot", "type": "item" }]
+}, {
+  "name": "effectivity-module-3",
+  "type": "recipe",
+  "ingredients": [{ "name": "effectivity-module-2", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "alien-artifact", "type": "item" }],
+  "results": [{ "name": "effectivity-module-3", "type": "item" }]
+}, {
+  "name": "productivity-module-3",
+  "type": "recipe",
+  "ingredients": [{ "name": "productivity-module-2", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "alien-artifact", "type": "item" }],
+  "results": [{ "name": "productivity-module-3", "type": "item" }]
+}, {
+  "name": "iron-chest",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "iron-chest", "type": "item" }]
+}, {
+  "name": "plastic-bar",
+  "type": "recipe",
+  "ingredients": [{ "name": "petroleum-gas", "type": "fluid" }, { "name": "coal", "type": "item" }],
+  "results": [{ "name": "plastic-bar", "type": "item" }]
+}, {
+  "name": "personal-roboport-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "processing-unit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "battery", "type": "item" }],
+  "results": [{ "name": "personal-roboport-equipment", "type": "item" }]
+}, {
+  "name": "pistol",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-plate", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "pistol", "type": "item" }]
+}, {
+  "name": "logistic-chest-passive-provider",
+  "type": "recipe",
+  "ingredients": [{ "name": "smart-chest", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "logistic-chest-passive-provider", "type": "item" }]
+}, {
+  "name": "effectivity-module",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "effectivity-module", "type": "item" }]
+}, {
+  "name": "advanced-oil-processing",
+  "type": "recipe",
+  "ingredients": [{ "name": "water", "type": "fluid" }, { "name": "crude-oil", "type": "fluid" }],
+  "results": [{ "name": "heavy-oil", "type": "fluid" }, { "name": "light-oil", "type": "fluid" }, { "name": "petroleum-gas", "type": "fluid" }]
+}, {
+  "name": "rail-signal",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "rail-signal", "type": "item" }]
+}, {
+  "name": "basic-laser-defense-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "processing-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "laser-turret", "type": "item" }],
+  "results": [{ "name": "basic-laser-defense-equipment", "type": "item" }]
+}, {
+  "name": "smart-inserter",
+  "type": "recipe",
+  "ingredients": [{ "name": "fast-inserter", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "smart-inserter", "type": "item" }]
+}, {
+  "name": "speed-module",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "speed-module", "type": "item" }]
+}, {
+  "name": "diesel-locomotive",
+  "type": "recipe",
+  "ingredients": [{ "name": "engine-unit", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "diesel-locomotive", "type": "item" }]
+}, {
+  "name": "effectivity-module-2",
+  "type": "recipe",
+  "ingredients": [{ "name": "effectivity-module", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "processing-unit", "type": "item" }],
+  "results": [{ "name": "effectivity-module-2", "type": "item" }]
+}, {
+  "name": "destroyer-capsule",
+  "type": "recipe",
+  "ingredients": [{ "name": "distractor-capsule", "type": "item" }, { "name": "speed-module", "type": "item" }],
+  "results": [{ "name": "destroyer-capsule", "type": "item" }]
+}, {
+  "name": "burner-inserter",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }],
+  "results": [{ "name": "burner-inserter", "type": "item" }]
+}, {
+  "name": "red-wire",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "copper-cable", "type": "item" }],
+  "results": [{ "name": "red-wire", "type": "item" }]
+}, {
+  "name": "steel-chest",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "steel-chest", "type": "item" }]
+}, {
+  "name": "rocket",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "explosives", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "rocket", "type": "item" }]
+}, {
+  "name": "energy-shield-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "energy-shield-equipment", "type": "item" }]
+}, {
+  "name": "solid-fuel-from-heavy-oil",
+  "type": "recipe",
+  "ingredients": [{ "name": "heavy-oil", "type": "fluid" }],
+  "results": [{ "name": "solid-fuel", "type": "item" }]
+}, {
+  "name": "fast-splitter",
+  "type": "recipe",
+  "ingredients": [{ "name": "basic-splitter", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "fast-splitter", "type": "item" }]
+}, {
+  "name": "power-armor",
+  "type": "recipe",
+  "ingredients": [{ "name": "processing-unit", "type": "item" }, { "name": "electric-engine-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "alien-artifact", "type": "item" }],
+  "results": [{ "name": "power-armor", "type": "item" }]
+}, {
+  "name": "radar",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "radar", "type": "item" }]
+}, {
+  "name": "logistic-robot",
+  "type": "recipe",
+  "ingredients": [{ "name": "flying-robot-frame", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "logistic-robot", "type": "item" }]
+}, {
+  "name": "laser-turret",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "battery", "type": "item" }],
+  "results": [{ "name": "laser-turret", "type": "item" }]
+}, {
+  "name": "car",
+  "type": "recipe",
+  "ingredients": [{ "name": "engine-unit", "type": "item" }, { "name": "iron-plate", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "car", "type": "item" }]
+}, {
+  "name": "science-pack-2",
+  "type": "recipe",
+  "ingredients": [{ "name": "basic-inserter", "type": "item" }, { "name": "basic-transport-belt", "type": "item" }],
+  "results": [{ "name": "science-pack-2", "type": "item" }]
+}, {
+  "name": "lab",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "basic-transport-belt", "type": "item" }],
+  "results": [{ "name": "lab", "type": "item" }]
+}, {
+  "name": "productivity-module-2",
+  "type": "recipe",
+  "ingredients": [{ "name": "productivity-module", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "processing-unit", "type": "item" }],
+  "results": [{ "name": "productivity-module-2", "type": "item" }]
+}, {
+  "name": "rocket-part",
+  "type": "recipe",
+  "ingredients": [{ "name": "low-density-structure", "type": "item" }, { "name": "rocket-fuel", "type": "item" }, { "name": "rocket-control-unit", "type": "item" }],
+  "results": [{ "name": "rocket-part", "type": "item" }]
+}, {
+  "name": "express-transport-belt-to-ground",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "fast-transport-belt-to-ground", "type": "item" }],
+  "results": [{ "name": "express-transport-belt-to-ground", "type": "item" }]
+}, {
+  "name": "pipe-to-ground",
+  "type": "recipe",
+  "ingredients": [{ "name": "pipe", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "pipe-to-ground", "type": "item" }]
+}, {
+  "name": "explosive-rocket",
+  "type": "recipe",
+  "ingredients": [{ "name": "rocket", "type": "item" }, { "name": "explosives", "type": "item" }],
+  "results": [{ "name": "explosive-rocket", "type": "item" }]
+}, {
+  "name": "wood",
+  "type": "recipe",
+  "ingredients": [{ "name": "raw-wood", "type": "item" }],
+  "results": [{ "name": "wood", "type": "item" }]
+}, {
+  "name": "rocket-fuel",
+  "type": "recipe",
+  "ingredients": [{ "name": "solid-fuel", "type": "item" }],
+  "results": [{ "name": "rocket-fuel", "type": "item" }]
+}, {
+  "name": "low-density-structure",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "copper-plate", "type": "item" }, { "name": "plastic-bar", "type": "item" }],
+  "results": [{ "name": "low-density-structure", "type": "item" }]
+}, {
+  "name": "express-transport-belt",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "fast-transport-belt", "type": "item" }, { "name": "lubricant", "type": "fluid" }],
+  "results": [{ "name": "express-transport-belt", "type": "item" }]
+}, {
+  "name": "solid-fuel-from-petroleum-gas",
+  "type": "recipe",
+  "ingredients": [{ "name": "petroleum-gas", "type": "fluid" }],
+  "results": [{ "name": "solid-fuel", "type": "item" }]
+}, {
+  "name": "steel-axe",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-stick", "type": "item" }],
+  "results": [{ "name": "steel-axe", "type": "item" }]
+}, {
+  "name": "small-pump",
+  "type": "recipe",
+  "ingredients": [{ "name": "electric-engine-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "pipe", "type": "item" }],
+  "results": [{ "name": "small-pump", "type": "item" }]
+}, {
+  "name": "decider-combinator",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-cable", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "decider-combinator", "type": "item" }]
+}, {
+  "name": "basic-accumulator",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "battery", "type": "item" }],
+  "results": [{ "name": "basic-accumulator", "type": "item" }]
+}, {
+  "name": "constant-combinator",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-cable", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "constant-combinator", "type": "item" }]
+}, {
+  "name": "pipe",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "pipe", "type": "item" }]
+}, {
+  "name": "slowdown-capsule",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "coal", "type": "item" }],
+  "results": [{ "name": "slowdown-capsule", "type": "item" }]
+}, {
+  "name": "explosives",
+  "type": "recipe",
+  "ingredients": [{ "name": "sulfur", "type": "item" }, { "name": "coal", "type": "item" }, { "name": "water", "type": "fluid" }],
+  "results": [{ "name": "explosives", "type": "item" }]
+}, {
+  "name": "power-armor-mk2",
+  "type": "recipe",
+  "ingredients": [{ "name": "effectivity-module-3", "type": "item" }, { "name": "speed-module-3", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "alien-artifact", "type": "item" }],
+  "results": [{ "name": "power-armor-mk2", "type": "item" }]
+}, {
+  "name": "medium-electric-pole",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "copper-plate", "type": "item" }],
+  "results": [{ "name": "medium-electric-pole", "type": "item" }]
+}, {
+  "name": "speed-module-2",
+  "type": "recipe",
+  "ingredients": [{ "name": "speed-module", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "speed-module-2", "type": "item" }]
+}, {
+  "name": "iron-gear-wheel",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "iron-gear-wheel", "type": "item" }]
+}, {
+  "name": "flying-robot-frame",
+  "type": "recipe",
+  "ingredients": [{ "name": "electric-engine-unit", "type": "item" }, { "name": "battery", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "flying-robot-frame", "type": "item" }]
+}, {
+  "name": "electric-engine-unit",
+  "type": "recipe",
+  "ingredients": [{ "name": "engine-unit", "type": "item" }, { "name": "lubricant", "type": "fluid" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "electric-engine-unit", "type": "item" }]
+}, {
+  "name": "basic-transport-belt-to-ground",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "basic-transport-belt", "type": "item" }],
+  "results": [{ "name": "basic-transport-belt-to-ground", "type": "item" }]
+}, {
+  "name": "fast-transport-belt-to-ground",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "basic-transport-belt-to-ground", "type": "item" }],
+  "results": [{ "name": "fast-transport-belt-to-ground", "type": "item" }]
+}, {
+  "name": "engine-unit",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "pipe", "type": "item" }],
+  "results": [{ "name": "engine-unit", "type": "item" }]
+}, {
+  "name": "electric-furnace",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "stone-brick", "type": "item" }],
+  "results": [{ "name": "electric-furnace", "type": "item" }]
+}, {
+  "name": "oil-refinery",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "stone-brick", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "pipe", "type": "item" }],
+  "results": [{ "name": "oil-refinery", "type": "item" }]
+}, {
+  "name": "railgun",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "copper-plate", "type": "item" }, { "name": "electronic-circuit", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "railgun", "type": "item" }]
+}, {
+  "name": "deconstruction-planner",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "deconstruction-planner", "type": "item" }]
+}, {
+  "name": "blueprint",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "blueprint", "type": "item" }]
+}, {
+  "name": "logistic-chest-requester",
+  "type": "recipe",
+  "ingredients": [{ "name": "smart-chest", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "logistic-chest-requester", "type": "item" }]
+}, {
+  "name": "arithmetic-combinator",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-cable", "type": "item" }, { "name": "electronic-circuit", "type": "item" }],
+  "results": [{ "name": "arithmetic-combinator", "type": "item" }]
+}, {
+  "name": "basic-transport-belt",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }],
+  "results": [{ "name": "basic-transport-belt", "type": "item" }]
+}, {
+  "name": "empty-crude-oil-barrel",
+  "type": "recipe",
+  "ingredients": [{ "name": "crude-oil-barrel", "type": "item" }],
+  "results": [{ "name": "crude-oil", "type": "fluid" }, { "name": "empty-barrel", "type": "item" }]
+}, {
+  "name": "rail-chain-signal",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "rail-chain-signal", "type": "item" }]
+}, {
+  "name": "flame-thrower-ammo",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "light-oil", "type": "fluid" }, { "name": "heavy-oil", "type": "fluid" }],
+  "results": [{ "name": "flame-thrower-ammo", "type": "item" }]
+}, {
+  "name": "rocket-silo",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "concrete", "type": "item" }, { "name": "pipe", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "electric-engine-unit", "type": "item" }],
+  "results": [{ "name": "rocket-silo", "type": "item" }]
+}, {
+  "name": "basic-beacon",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "copper-cable", "type": "item" }],
+  "results": [{ "name": "basic-beacon", "type": "item" }]
+}, {
+  "name": "advanced-circuit",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "plastic-bar", "type": "item" }, { "name": "copper-cable", "type": "item" }],
+  "results": [{ "name": "advanced-circuit", "type": "item" }]
+}, {
+  "name": "battery-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "battery", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "battery-equipment", "type": "item" }]
+}, {
+  "name": "repair-pack",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }],
+  "results": [{ "name": "repair-pack", "type": "item" }]
+}, {
+  "name": "tank",
+  "type": "recipe",
+  "ingredients": [{ "name": "engine-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "tank", "type": "item" }]
+}, {
+  "name": "sulfur",
+  "type": "recipe",
+  "ingredients": [{ "name": "water", "type": "fluid" }, { "name": "petroleum-gas", "type": "fluid" }],
+  "results": [{ "name": "sulfur", "type": "item" }]
+}, {
+  "name": "big-electric-pole",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "copper-plate", "type": "item" }],
+  "results": [{ "name": "big-electric-pole", "type": "item" }]
+}, {
+  "name": "basic-splitter",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-plate", "type": "item" }, { "name": "basic-transport-belt", "type": "item" }],
+  "results": [{ "name": "basic-splitter", "type": "item" }]
+}, {
+  "name": "straight-rail",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone", "type": "item" }, { "name": "iron-stick", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "straight-rail", "type": "item" }]
+}, {
+  "name": "basic-mining-drill",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "basic-mining-drill", "type": "item" }]
+}, {
+  "name": "burner-mining-drill",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "stone-furnace", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "burner-mining-drill", "type": "item" }]
+}, {
+  "name": "fusion-reactor-equipment",
+  "type": "recipe",
+  "ingredients": [{ "name": "processing-unit", "type": "item" }, { "name": "alien-artifact", "type": "item" }],
+  "results": [{ "name": "fusion-reactor-equipment", "type": "item" }]
+}, {
+  "name": "curved-rail",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone", "type": "item" }, { "name": "iron-stick", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "curved-rail", "type": "item" }]
+}, {
+  "name": "land-mine",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "explosives", "type": "item" }],
+  "results": [{ "name": "land-mine", "type": "item" }]
+}, {
+  "name": "basic-oil-processing",
+  "type": "recipe",
+  "ingredients": [{ "name": "crude-oil", "type": "fluid" }],
+  "results": [{ "name": "heavy-oil", "type": "fluid" }, { "name": "light-oil", "type": "fluid" }, { "name": "petroleum-gas", "type": "fluid" }]
+}, {
+  "name": "green-wire",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "copper-cable", "type": "item" }],
+  "results": [{ "name": "green-wire", "type": "item" }]
+}, {
+  "name": "iron-axe",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-stick", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "iron-axe", "type": "item" }]
+}, {
+  "name": "alien-science-pack",
+  "type": "recipe",
+  "ingredients": [{ "name": "alien-artifact", "type": "item" }],
+  "results": [{ "name": "alien-science-pack", "type": "item" }]
+}, {
+  "name": "heavy-oil-cracking",
+  "type": "recipe",
+  "ingredients": [{ "name": "water", "type": "fluid" }, { "name": "heavy-oil", "type": "fluid" }],
+  "results": [{ "name": "light-oil", "type": "fluid" }]
+}, {
+  "name": "concrete",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone-brick", "type": "item" }, { "name": "iron-ore", "type": "item" }, { "name": "water", "type": "fluid" }],
+  "results": [{ "name": "concrete", "type": "item" }]
+}, {
+  "name": "sulfuric-acid",
+  "type": "recipe",
+  "ingredients": [{ "name": "sulfur", "type": "item" }, { "name": "iron-plate", "type": "item" }, { "name": "water", "type": "fluid" }],
+  "results": [{ "name": "sulfuric-acid", "type": "fluid" }]
+}, {
+  "name": "flame-thrower",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }],
+  "results": [{ "name": "flame-thrower", "type": "item" }]
+}, {
+  "name": "stone-wall",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone-brick", "type": "item" }],
+  "results": [{ "name": "stone-wall", "type": "item" }]
+}, {
+  "name": "battery",
+  "type": "recipe",
+  "ingredients": [{ "name": "sulfuric-acid", "type": "fluid" }, { "name": "iron-plate", "type": "item" }, { "name": "copper-plate", "type": "item" }],
+  "results": [{ "name": "battery", "type": "item" }]
+}, {
+  "name": "science-pack-3",
+  "type": "recipe",
+  "ingredients": [{ "name": "battery", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "smart-inserter", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "science-pack-3", "type": "item" }]
+}, {
+  "name": "distractor-capsule",
+  "type": "recipe",
+  "ingredients": [{ "name": "defender-capsule", "type": "item" }, { "name": "advanced-circuit", "type": "item" }],
+  "results": [{ "name": "distractor-capsule", "type": "item" }]
+}, {
+  "name": "iron-stick",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "iron-stick", "type": "item" }]
+}, {
+  "name": "stone-furnace",
+  "type": "recipe",
+  "ingredients": [{ "name": "stone", "type": "item" }],
+  "results": [{ "name": "stone-furnace", "type": "item" }]
+}, {
+  "name": "basic-armor",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "basic-armor", "type": "item" }]
+}, {
+  "name": "basic-modular-armor",
+  "type": "recipe",
+  "ingredients": [{ "name": "advanced-circuit", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "basic-modular-armor", "type": "item" }]
+}, {
+  "name": "copper-plate",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-ore", "type": "item" }],
+  "results": [{ "name": "copper-plate", "type": "item" }]
+}, {
+  "name": "iron-plate",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-ore", "type": "item" }],
+  "results": [{ "name": "iron-plate", "type": "item" }]
+}, {
+  "name": "basic-bullet-magazine",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "basic-bullet-magazine", "type": "item" }]
+}, {
+  "name": "explosive-cannon-shell",
+  "type": "recipe",
+  "ingredients": [{ "name": "steel-plate", "type": "item" }, { "name": "plastic-bar", "type": "item" }, { "name": "explosives", "type": "item" }],
+  "results": [{ "name": "explosive-cannon-shell", "type": "item" }]
+}, {
+  "name": "cargo-wagon",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-gear-wheel", "type": "item" }, { "name": "iron-plate", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "cargo-wagon", "type": "item" }]
+}, {
+  "name": "assembling-machine-1",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "assembling-machine-1", "type": "item" }]
+}, {
+  "name": "small-lamp",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-stick", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "small-lamp", "type": "item" }]
+}, {
+  "name": "piercing-shotgun-shell",
+  "type": "recipe",
+  "ingredients": [{ "name": "copper-plate", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "piercing-shotgun-shell", "type": "item" }]
+}, {
+  "name": "speed-module-3",
+  "type": "recipe",
+  "ingredients": [{ "name": "speed-module-2", "type": "item" }, { "name": "advanced-circuit", "type": "item" }, { "name": "processing-unit", "type": "item" }, { "name": "alien-artifact", "type": "item" }],
+  "results": [{ "name": "speed-module-3", "type": "item" }]
+}, {
+  "name": "storage-tank",
+  "type": "recipe",
+  "ingredients": [{ "name": "iron-plate", "type": "item" }, { "name": "steel-plate", "type": "item" }],
+  "results": [{ "name": "storage-tank", "type": "item" }]
+}, {
+  "name": "basic-inserter",
+  "type": "recipe",
+  "ingredients": [{ "name": "electronic-circuit", "type": "item" }, { "name": "iron-gear-wheel", "type": "item" }, { "name": "iron-plate", "type": "item" }],
+  "results": [{ "name": "basic-inserter", "type": "item" }]
+}]
+
